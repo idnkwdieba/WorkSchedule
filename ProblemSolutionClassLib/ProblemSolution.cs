@@ -1,6 +1,4 @@
 ﻿
-// To-do: Собственное исключение TaskNullException
-
 namespace WorkSchedule.Shared;
 
 using static System.Console;
@@ -12,8 +10,20 @@ public class ProblemSolution
     private int[]? _taskStartTime; // время начала выполнения каждой работы
     private int[]? _taskEndTime; // время окончания выполнения каждой работы
 
+    /// <summary>
+    /// Конструктор экземпляра класса ProblemSolution.
+    /// </summary>
+    /// <param name="problem">Задача для решения.</param>
     public ProblemSolution(ProblemParams problem)
     {
+        // Проверка данных
+        // Если передан указатель на null
+        if (problem == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(problem)} " +
+                $"имел указатель на null.");
+        }
+
         Problem = problem;
     }
 
@@ -37,6 +47,9 @@ public class ProblemSolution
             _problem = value;
         }
     }
+    /// <summary>
+    /// Свойство порядка выполнения работ.
+    /// </summary>
     public int[]? TaskOrder
     {
         get
@@ -118,6 +131,9 @@ public class ProblemSolution
             value.CopyTo(_taskEndTime, 0);
         }
     }
+    /// <summary>
+    /// Свойство целевой функции.
+    /// </summary>
     public int GoalFunction
     {
         get
@@ -130,36 +146,81 @@ public class ProblemSolution
         }
     }
 
-    // Решение перебором
+    /// <summary>
+    /// Решение задачи с помощью полного перебора.
+    /// </summary>
     public void BruteForceSolution()
     {
         BruteForceSolution(this);
     }
+    /// <summary>
+    /// Решение задачи с помощью полного перебора.
+    /// </summary>
+    /// <param name="solution">Решение, в которые сохраняются результаты.</param>
     public static void BruteForceSolution(ProblemSolution solution)
     {
+        // Проверка данных
+        // Если передан указатель на null
+        if (solution == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(solution)} " +
+                $"имел указатель на null.");
+        }
+
         // Вызов алгоритма перебора
         BruteForceAlgorithm.RunBruteForceAlg(solution.Problem, ref solution._tasksOrder!);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);
     }
-    // Решение тасующим методом прыгающих лягушек
+
+    /// <summary>
+    /// Решение тасующим методом прыгающих лягушек.
+    /// </summary>
     public void LeapingFrogsSolution()
     {
         LeapingFrogsSolution(this);
     }
+    /// <summary>
+    /// Решение тасующим методом прыгающих лягушек.
+    /// </summary>
+    /// <param name="solution">Решение, в которые сохраняются результаты.</param>
     public static void LeapingFrogsSolution(ProblemSolution solution)
     {
+        // Проверка данных
+        // Если передан указатель на null
+        if (solution == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(solution)} " +
+                $"имел указатель на null.");
+        }
+
         // Вызов тасующего алгоритма прыгающих лягушек
         FrogsAlgorithm.RunFrogsAlg(solution.Problem, ref solution._tasksOrder!);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);
     }
+
+    /// <summary>
+    /// Вывод данных о решении задачи.
+    /// </summary>
     public void Print()
     {
         Print(this);
     }
+    /// <summary>
+    /// Вывод данных о решении задачи.
+    /// </summary>
+    /// <param name="solution">Решение, в которые сохраняются результаты.</param>
     public static void Print(ProblemSolution solution)
     {
+        // Проверка данных
+        // Если передан указатель на null
+        if (solution == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(solution)} " +
+                $"имел указатель на null.");
+        }
+
         // проверка наличия решения
         if (solution.Problem == null)
         {
@@ -202,6 +263,12 @@ public class ProblemSolution
     /// <param name="message">Сообщение для вывода.</param>
     private static void WriteColor(string message)
     {
+        // если передан указатель на null
+        if (message == null)
+        {
+            return;
+        }
+
         Console.ForegroundColor = ConsoleColor.Red;
         Write(message);
         Console.ForegroundColor = ConsoleColor.White;

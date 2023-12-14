@@ -1,8 +1,4 @@
 ﻿
-// To-do: вынести критерий в отдельный метод, который будет передаваться в функцию
-// (Сделать это с помощью событий или делегатов?)
-// To-do: Вынести статические функции OutputSolutionData в класс ProblemSolution
-
 namespace WorkSchedule.Shared;
 
 using static System.Console;
@@ -14,9 +10,6 @@ public static class BruteForceAlgorithm
     /// </summary>
     /// <param name="parameters">Параметры задачи.</param>
     /// <param name="taskOrder">Получаемый порядок выполнения задач.</param>
-    /// <param name="taskStartTime">Получаемое время начала выполнения работ.</param>
-    /// <param name="taskEndTime">Получаемое время окончания выполнения работ.</param>
-    /// <param name="goalFunc">Получаемая целевая функция данного решения.</param>
     /// <param name="prevIndexes">Индексы, использованные ранее в перестановке.</param>
     public static void RunBruteForceAlg(in ProblemParams parameters, ref int[] taskOrder, 
         List<int>? prevIndexes = null)
@@ -33,15 +26,9 @@ public static class BruteForceAlgorithm
             // Поиск решения
 
             int[] tmpTaskOrder = new int[parameters.NumOfTasks]; // временный массив для порядка выполнения работы
-            int tmpGoalFunc; // временное значение целевой функции
 
             // копировать порядок выполнения работ из списка в массив
             prevIndexes.CopyTo(tmpTaskOrder, 0);
-
-
-
-            // Вычисление целевой функции
-            tmpGoalFunc = ProblemParams.GetFitness(parameters, tmpTaskOrder);
 
             // Вывод данных полученной перестановки
             /*
@@ -59,12 +46,12 @@ public static class BruteForceAlgorithm
             */
 
             // Если полученное решение является более оптимальным, чем предыдущее
-            if (taskOrder == null || tmpGoalFunc < ProblemParams.GetFitness(parameters, taskOrder))
+            if (taskOrder == null || parameters.CheckForBetterFitness(tmpTaskOrder, taskOrder))
             {
                 // Присвоить значения соответствующим параметрам
                 taskOrder = tmpTaskOrder;
             }
-            
+
             return;
         }
 

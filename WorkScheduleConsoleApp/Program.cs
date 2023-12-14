@@ -6,7 +6,7 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        // Заданные условия задачи
+        // 1. Заданные условия задачи
         /*
         // Условия задачи
         int numberOfTasks = 5;
@@ -19,7 +19,9 @@ internal class Program
             taskCompletionGoal, taskPenalty);
         */
 
-        // Случайная генерация задачи
+
+
+        // 2. Случайная генерация задачи
         /*
         ProblemParams exampleProblem = UniformDistribution.GenerateProblemUD();
 
@@ -40,21 +42,22 @@ internal class Program
         WriteLine();
         */
 
-        //ProblemParams exampleProblem = UniformDistribution.GenerateProblemUD();
 
-        int numberOfTasks = 5;
-        int[] taskRequiredTime = new[] { 2, 5, 3, 1, 4 };
-        int[] taskArrivalTime = new[] { 2, 2, 0, 0, 1 };
-        int[] taskCompletionGoal = new[] { 7, 4, 1, 2, 3 };
-        int[] taskPenalty = new[] { 3, 1, 3, 2, 3 };
 
-        ProblemParams exampleProblem = new(numberOfTasks, taskRequiredTime, taskArrivalTime,
-            taskCompletionGoal, taskPenalty);
+        // 3. Использоватие SolutionCollection и вывод отклонений
+        /*
+        ProblemParams exampleProblem = UniformDistribution.GenerateProblemUD();
 
         exampleProblem.Print();
         SolutionsCollection solutions = new(exampleProblem);
         WriteLine(ProblemParams.ValidateSolution(exampleProblem, solutions._leapingFrogsSolution.TaskOrder!));
         solutions.PrintSolutions();
         WriteLine(solutions.GetDeviation());
+        */
+
+        // 4. Прогонка 100 случайных задач с сохранением отклонений в файл
+        ProblemSimulation.RunSimulation(100);
+        WriteLine("Задачи были успешно решены, отклонения сохранены в файл.");
+
     }
 }

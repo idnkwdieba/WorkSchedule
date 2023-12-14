@@ -89,8 +89,7 @@ public static class FrogsAlgorithm
                         // Временное решение, пока не понятно как реализовать алгоритм для теории расписаний
                         subgroups[i][j].CopyTo(tmpOrder, 0);
 
-                        if (ProblemParams.GetFitness(parameters, subgroups[i][j])
-                            <= ProblemParams.GetFitness(parameters, tmpOrder))
+                        if (!parameters.CheckForBetterFitness(subgroups[i][j], tmpOrder))
                         {
 
                             // Если это не улучшило её приспособленность - переместить лягушку в сторону глобально
@@ -99,27 +98,25 @@ public static class FrogsAlgorithm
                             // Временное решение, пока не понятно как реализовать алгоритм для теории расписаний
                             subgroups[i][j].CopyTo(tmpOrder, 0);
 
-                            if (ProblemParams.GetFitness(parameters, subgroups[i][j])
-                                <= ProblemParams.GetFitness(parameters, tmpOrder))
+                            //ProblemParams.GetFitness(parameters, subgroups[i][j])
+                            //<= ProblemParams.GetFitness(parameters, tmpOrder)
+
+                            if (!parameters.CheckForBetterFitness(subgroups[i][j], tmpOrder))
                             {
                                 // Если и это не помогло - переместить лягушку в случайное место на поле
                                 subgroups[i][j] = RandomIndividual(parameters.NumOfTasks);
                             }
                         }
 
-                        int tmp1, tmp2;
-
                         // Если найдена лучшая особь в мемплексе
-                        if ((tmp1 = ProblemParams.GetFitness(parameters, bestMemeplexIndividual[i]))
-                            > (tmp2 = ProblemParams.GetFitness(parameters, subgroups[i][j])))
+                        if (parameters.CheckForBetterFitness(subgroups[i][j], bestMemeplexIndividual[i]))
                         {
                             // Обновить информацию о лучшей особи в мемплексе
                             subgroups[i][j].CopyTo(bestMemeplexIndividual[i], 0);
                         }
 
                         // Если найдена лучшая особь во всей популяции
-                        if ((tmp1 = ProblemParams.GetFitness(parameters, bestIndividual))
-                            > (tmp2 = ProblemParams.GetFitness(parameters, subgroups[i][j])))
+                        if (parameters.CheckForBetterFitness(subgroups[i][j], bestIndividual))
                         {
                             // Обновить лучшую особь
                             subgroups[i][j].CopyTo(bestIndividual, 0);
@@ -223,6 +220,12 @@ public static class FrogsAlgorithm
         return individual;
     }
 
+    /// <summary>
+    /// Сортировка списка особей по оптимальности.
+    /// </summary>
+    /// <param name="parameters">Данные задачи.</param>
+    /// <param name="population">Список особей для сортировки.</param>
+    /// <exception cref="NullReferenceException"></exception>
     public static void SortByFitness(in ProblemParams parameters, ref List<int[]> population)
     {
         // если переданы некорректные параметры
@@ -242,8 +245,7 @@ public static class FrogsAlgorithm
             for (int i = right; i >= left; i--)
             {
                 // если критерий оптимальности (i-1)-й особи больше критерия оптимальности i-й особи
-                if (ProblemParams.GetFitness(parameters, population[i-1])
-                    > ProblemParams.GetFitness(parameters, population[i]))
+                if (parameters.CheckForBetterFitness(population[i], population[i-1]))
                 {
                     // поменять особи местами
                     tmp = population[i];
@@ -257,8 +259,7 @@ public static class FrogsAlgorithm
             for (int i = left; i <= right; i++)
             {
                 // если критерий оптимальности (i-1)-й особи больше критерия оптимальности i особи
-                if (ProblemParams.GetFitness(parameters, population[i - 1])
-                    > ProblemParams.GetFitness(parameters, population[i]))
+                if (parameters.CheckForBetterFitness(population[i], population[i - 1]))
                 {
                     // поменять особи местами
                     tmp = population[i];
@@ -268,20 +269,5 @@ public static class FrogsAlgorithm
             }
             right--;
         }
-    }
-
-    /// <summary>
-    /// Вывести перестановку и значение её целевой функции.
-    /// </summary>
-    /// <param name="taskOrder"></param>
-    /// <param name="goalFunc"></param>
-    private static void OutputSolutionData(in int[] taskOrder, in int goalFunc)
-    {
-        Write("Порядок:");
-        foreach (int i in taskOrder)
-        {
-            Write(" " + (i + 1));
-        }
-        WriteLine($"; Целевая функция: {goalFunc}");
     }
 }

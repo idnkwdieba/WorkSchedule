@@ -9,5 +9,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\ProblemParamsClassLib\ProblemParamsClassLib.csproj" />
 		<ProjectReference Include="..\AlgorithmsClassLib\AlgorithmsClassLib.csproj" />
+		<ProjectReference Include="..\ProblemGenerationClassLib\ProblemGenerationClassLib.csproj" />
 	</ItemGroup>
 </Project>

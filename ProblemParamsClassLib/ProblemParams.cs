@@ -1,6 +1,4 @@
 ﻿
-// To-do: Свой собственный класс исключений TaskQuantityException, TaskParamsNullException, TaskParamsArrayException
-
 namespace WorkSchedule.Shared;
 
 using static System.Console;
@@ -20,26 +18,29 @@ public class ProblemParams
     public ProblemParams(int numOfTasks, int[] taskRequiredTime, int[] taskArrivalTime,
         int[] taskCompletionGoal, int[] taskPenalty)
     {
+        // Обработка некорректных параметров
+        // Если количество задач меньше равно нуля
         if (numOfTasks <= 0)
         {
-            // To-do: Исключение, сообщающее, что количество задач меньше равно нуля
-            throw new Exception();
+            throw new ArgumentException($"Параметр {nameof(numOfTasks)} был меньше либо равен нулю.");
         }
+        // Если один из массивов указывает на null
         if (taskRequiredTime == null || taskArrivalTime == null 
             || taskCompletionGoal == null || taskPenalty == null)
         {
-            // To-do: исключение, сообщающее, что указатель на массив параметров
-            // является указателем на null
-            throw new Exception();
+            throw new NullReferenceException($"Один из параметров {nameof(taskRequiredTime)}, {nameof(taskArrivalTime)}, " +
+                $"{nameof(taskCompletionGoal)}, {nameof(taskPenalty)} имел указатель на null.");
         }
+        // Если длина одного из массивов не равна заданному в numOfTasks числу задач
         if (taskRequiredTime.Length != numOfTasks || taskArrivalTime.Length != numOfTasks
             || taskCompletionGoal.Length != numOfTasks || taskPenalty.Length != numOfTasks)
         {
-            // To-do: Исключение, сообщающее, что один из массивов не содержит нужного числа элементов
-            throw new Exception();
+            throw new ArgumentException($"Один из параметров {nameof(taskRequiredTime)}, {nameof(taskArrivalTime)}, " +
+                $"{nameof(taskCompletionGoal)}, {nameof(taskPenalty)} имел длину, отличную от " +
+                $"значения параметра {nameof(numOfTasks)}.");
         }
 
-        NumOfTasks = numOfTasks;
+        _numOfTasks = numOfTasks;
         TaskRequiredTime = taskRequiredTime;
         TaskArrivalTime = taskArrivalTime;
         TaskCompletionGoal = taskCompletionGoal;
@@ -54,10 +55,6 @@ public class ProblemParams
         get
         {
             return _numOfTasks;
-        }
-        init
-        {
-            _numOfTasks = value;
         }
     }
     /// <summary>
@@ -128,23 +125,25 @@ public class ProblemParams
             value.CopyTo(_taskPenalty, 0);
         }
     }
+
+    /// <summary>
+    /// Печать данных о задаче на консоль.
+    /// </summary>
     public void Print()
     {
         Print(this);
     }
+    /// <summary>
+    /// Печать данных о задаче на консоль.
+    /// </summary>
+    /// <param name="problemParams">Задача для вывода на консоль.</param>
+    /// <exception cref="Exception"></exception>
     public static void Print(ProblemParams problemParams)
     {
-        if (problemParams.NumOfTasks <= 0)
+        // Проверка корректности параметров
+        if (problemParams == null)
         {
-            // To-do: Исключение, сообщающее, что количество задач меньше равно нуля
-            throw new Exception();
-        }
-        if (problemParams.TaskRequiredTime == null || problemParams.TaskArrivalTime == null
-            || problemParams.TaskCompletionGoal == null || problemParams.TaskPenalty == null)
-        {
-            // To-do: исключение, сообщающее, что указатель на массив параметров
-            // является указателем на null
-            throw new Exception();
+            throw new NullReferenceException($"Параметр {nameof(problemParams)} имел указатель на null.");
         }
 
         WriteLine($"~ Задача для {problemParams.NumOfTasks} работ:");
@@ -182,6 +181,25 @@ public class ProblemParams
     /// <returns>Значение целевой функции.</returns>
     public static int GetFitness(in ProblemParams parameters, in int[] taskOrder)
     {
+        // Проверка параметров
+        // Если данные о задаче - пустой указатель
+        if (parameters == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(parameters)} имел указатель на null.");
+        }
+        // Если массив - пустой указатель
+        if (taskOrder == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(taskOrder)} " +
+                $"имел указатель на null.");
+        }
+        // Если длина массива не совпадает с данными задачи
+        if (taskOrder.Length != parameters.NumOfTasks)
+        {
+            throw new ArgumentException($"Массив {nameof(taskOrder)} имел длину, отличную от значения " +
+                $"{nameof(parameters.NumOfTasks)}.");
+        }
+
         // Проверка допустимости решения
         if (!ProblemParams.ValidateSolution(parameters, taskOrder))
         {
@@ -231,6 +249,66 @@ public class ProblemParams
     }
 
     /// <summary>
+    /// Проверка, яляется ли первое решение оптимальнее второго.
+    /// </summary>
+    /// <param name="firstTaskOrder">Первое решение, с коротым осуществляется сравнение.</param>
+    /// <param name="secondTaskOrder">Второе решение.</param>
+    /// <param name="isMaxing">Флаг, означающий, что критерий максимизируется.</param>
+    /// <returns>true, если первое решение является более оптимальным;<br/>
+    /// false, в противном случае.</returns>
+    public bool CheckForBetterFitness(in int[] firstTaskOrder, in int[] secondTaskOrder, bool isMaxing = false)
+    {
+        return CheckForBetterFitness(this, firstTaskOrder, secondTaskOrder, isMaxing);
+    }
+    /// <summary>
+    /// Проверка, яляется ли первое решение оптимальнее второго.
+    /// </summary>
+    /// <param name="problemParams">Данные о задаче.</param>
+    /// <param name="firstTaskOrder">Первое решение, с коротым осуществляется сравнение.</param>
+    /// <param name="secondTaskOrder">Второе решение.</param>
+    /// <param name="isMaxing">Флаг, означающий, что критерий максимизируется.</param>
+    /// <returns>true, если первое решение является более оптимальным;<br/>
+    /// false, в противном случае.</returns>
+    public static bool CheckForBetterFitness(ProblemParams problemParams, in int[] firstTaskOrder,
+        in int[] secondTaskOrder, bool isMaxing = false)
+    {
+        // Проверка параметров
+        // Если данные о задаче - пустой указатель
+        if (problemParams == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(problemParams)} имел указатель на null.");
+        }
+        // Если один из массивов - пустой указатель
+        if (firstTaskOrder == null || secondTaskOrder == null)
+        {
+            throw new NullReferenceException($"Один из параметров {nameof(firstTaskOrder)}, " +
+                $"{nameof(secondTaskOrder)} имел указатель на null.");
+        }
+        // Если длина одного из массивов не совпадает с данными задачи
+        if (firstTaskOrder.Length != problemParams.NumOfTasks 
+            || secondTaskOrder.Length != problemParams.NumOfTasks)
+        {
+            throw new ArgumentException($"Один из массивов {nameof(firstTaskOrder)}, " +
+                $"{nameof(secondTaskOrder)} имел длину, отличную от значения " +
+                $"{nameof(problemParams.NumOfTasks)}.");
+        }
+
+        // Флаг, означающий что первое решение имеет больший критерий в сравнении со вторым решением
+        bool isGreater = GetFitness(problemParams, firstTaskOrder) > GetFitness(problemParams, secondTaskOrder);
+
+        // Если критерий первого решения больше критерия второго
+        if (isGreater)
+        {
+            // Вернуть флаг, показывающий, максимизируем ли мы критерий
+            return isMaxing;
+        }
+        // Если критерий первого решения меньше равно критерия второго
+        // Вернуть инверсированный флаг, показывающий, максимизируем ли мы критерий
+        return !isMaxing;
+
+    }
+
+    /// <summary>
     /// Вычислить времена начала и окончания выполнения работ.
     /// </summary>
     /// <param name="parameters">Начальные условия задачи для выполнения.</param>
@@ -240,6 +318,25 @@ public class ProblemParams
     public static void GetStartEndTime(in ProblemParams parameters, in int[] taskOrder,
         out int[] taskStartTime, out int[] taskEndTime)
     {
+        // Проверка параметров
+        // Если данные о задаче - пустой указатель
+        if (parameters == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(parameters)} имел указатель на null.");
+        }
+        // Если массив - пустой указатель
+        if (taskOrder == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(taskOrder)} " +
+                $"имел указатель на null.");
+        }
+        // Если массив нулевой длины
+        if (taskOrder.Length == 0)
+        {
+            throw new ArgumentException($"Массив {nameof(taskOrder)} " +
+                $"имел нулевую длину.");
+        }
+
         taskStartTime = new int[taskOrder.Length];
         taskEndTime = new int[taskOrder.Length];
         int curTime = 0;
@@ -257,9 +354,23 @@ public class ProblemParams
     /// </summary>
     /// <param name="parameters">Начальные условия задачи для выполнения.</param>
     /// <param name="taskOrder">Порядок выполнения работ.</param>
-    /// <returns></returns>
+    /// <returns>true, если первое решение является более оптимальным;<br/>
+    /// false, в противном случае.</returns>
     public static bool ValidateSolution(in ProblemParams parameters, in int[] taskOrder)
     {
+        // Проверка параметров
+        // Если данные о задаче - пустой указатель
+        if (parameters == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(parameters)} имел указатель на null.");
+        }
+        // Если массив - пустой указатель
+        if (taskOrder == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(taskOrder)} " +
+                $"имел указатель на null.");
+        }
+
         int curTime = 0;
 
         foreach (int i in taskOrder)
@@ -280,6 +391,19 @@ public class ProblemParams
     /// <param name="taskOrder">Порядок выполнения задач.</param>
     public static void OutputSolutionData(ProblemParams parameters, in int[] taskOrder)
     {
+        // Проверка параметров
+        // Если данные о задаче - пустой указатель
+        if (parameters == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(parameters)} имел указатель на null.");
+        }
+        // Если массив - пустой указатель
+        if (taskOrder == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(taskOrder)} " +
+                $"имел указатель на null.");
+        }
+
         WriteLine("Порядок:" + TurnArrayToString(taskOrder) + "; Целевая функция: " 
             + GetFitness(parameters ,taskOrder));
     }
@@ -289,8 +413,14 @@ public class ProblemParams
     /// </summary>
     /// <param name="array">Массив перестановки.</param>
     /// <returns>Строковое представление массива.</returns>
-    public static string TurnArrayToString(in int[] array)
+    public static string? TurnArrayToString(in int[] array)
     {
+        // Если массив указывает на null 
+        if (array == null)
+        {
+            return null;
+        }
+
         string str = string.Empty;
         string ch = "";
 

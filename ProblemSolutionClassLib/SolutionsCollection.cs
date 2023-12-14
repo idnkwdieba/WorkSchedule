@@ -7,7 +7,7 @@ public class SolutionsCollection
 {
     private ProblemParams _problemParams; // данные о задаче
     private ProblemSolution _bruteForceSolution; // решение перебором
-    public ProblemSolution _leapingFrogsSolution; // решение тасующим алгоритмом прыгающих лягушек
+    private ProblemSolution _leapingFrogsSolution; // решение тасующим алгоритмом прыгающих лягушек
 
     /// <summary>
     /// Конструктор экземпляра класса.
@@ -30,13 +30,27 @@ public class SolutionsCollection
         _leapingFrogsSolution.LeapingFrogsSolution();
     }
 
-    // Вывести решения, полученные разными методами.
+    /// <summary>
+    /// Вывести решения, полученные разными методами.
+    /// </summary>
     public void PrintSolutions()
     {
         PrintSolutions(this);
     }
+    /// <summary>
+    /// Вывести решения, полученные разными методами.
+    /// </summary>
+    /// <param name="solutionsCollection">Коллекция решений для вывода.</param>
     public static void PrintSolutions(SolutionsCollection solutionsCollection)
     {
+        // Проверка данных
+        // Если передан указатель на null
+        if (solutionsCollection == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(solutionsCollection)} " +
+                $"имел указатель на null.");
+        }
+
         Write($"{"Полный перебор", -20}| ");
         ProblemParams.OutputSolutionData(solutionsCollection._problemParams,
             solutionsCollection._bruteForceSolution.TaskOrder!);
@@ -61,6 +75,14 @@ public class SolutionsCollection
     /// <returns>Процент отклонения решения алгоритмом прыгающих лягушек от решения перебором.</returns>
     public static double GetDeviation(in SolutionsCollection solutionsCollection)
     {
+        // Проверка данных
+        // Если передан указатель на null
+        if (solutionsCollection == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(solutionsCollection)} " +
+                $"имел указатель на null.");
+        }
+
         double d1 = (solutionsCollection._leapingFrogsSolution.GoalFunction
             - solutionsCollection._bruteForceSolution.GoalFunction);
         double d2 = d1 / solutionsCollection._bruteForceSolution.GoalFunction;
