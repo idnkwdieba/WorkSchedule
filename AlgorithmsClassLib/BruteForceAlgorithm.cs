@@ -31,17 +31,32 @@ public static class BruteForceAlgorithm
         if (prevIndexes.Count == parameters.NumOfTasks)
         {
             // Поиск решения
+
             int[] tmpTaskOrder = new int[parameters.NumOfTasks]; // временный массив для порядка выполнения работы
             int tmpGoalFunc; // временное значение целевой функции
 
             // копировать порядок выполнения работ из списка в массив
             prevIndexes.CopyTo(tmpTaskOrder, 0);
 
+
+
             // Вычисление целевой функции
             tmpGoalFunc = ProblemParams.GetFitness(parameters, tmpTaskOrder);
 
             // Вывод данных полученной перестановки
-            OutputSolutionData(tmpTaskOrder, tmpGoalFunc);
+            /*
+            if (!ProblemParams.ValidateSolution(parameters, tmpTaskOrder))
+            {
+                // Недопустимое решение
+                WriteLine("Порядок:" + ProblemParams.TurnArrayToString(tmpTaskOrder) 
+                    + "; Является недопустимым решением");
+            }
+            else
+            {
+                // Допустимое решение
+                ProblemParams.OutputSolutionData(parameters, tmpTaskOrder);
+            }
+            */
 
             // Если полученное решение является более оптимальным, чем предыдущее
             if (taskOrder == null || tmpGoalFunc < ProblemParams.GetFitness(parameters, taskOrder))
@@ -67,20 +82,5 @@ public static class BruteForceAlgorithm
             RunBruteForceAlg(parameters, ref taskOrder, prevIndexes);
             prevIndexes.Remove(i);
         }
-    }
-
-    /// <summary>
-    /// Вывести перестановку и значение её целевой функции.
-    /// </summary>
-    /// <param name="taskOrder"></param>
-    /// <param name="goalFunc"></param>
-    private static void OutputSolutionData(in int[] taskOrder, in int goalFunc)
-    {
-        Write("Порядок:");
-        foreach (int i in taskOrder)
-        {
-            Write(" " + i);
-        }
-        WriteLine($"; Целевая функция: {goalFunc}");
     }
 }

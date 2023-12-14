@@ -182,6 +182,13 @@ public class ProblemParams
     /// <returns>Значение целевой функции.</returns>
     public static int GetFitness(in ProblemParams parameters, in int[] taskOrder)
     {
+        // Проверка допустимости решения
+        if (!ProblemParams.ValidateSolution(parameters, taskOrder))
+        {
+            // Недопустимое решение - вернуть максимально возможное число типа int
+            return int.MaxValue;
+        }
+
         int critFunc = int.MinValue;
         int tmpVal;
 
@@ -198,6 +205,7 @@ public class ProblemParams
             critFunc = tmpVal > critFunc ? tmpVal : critFunc;
         }
 
+        /*
         // Штрафы за преждевременное начало работы
         for (int i = 0; i < parameters.NumOfTasks; i++)
         {
@@ -207,6 +215,7 @@ public class ProblemParams
             tmpVal = tmpVal < 0 ? 0 : tmpVal;
             critFunc += tmpVal;
         }
+        */
 
         // Штрафы за нарушение крайних сроков работы
         for (int i = 0; i < parameters.NumOfTasks; i++)
@@ -237,9 +246,60 @@ public class ProblemParams
 
         for (int i = 0; i < taskOrder.Length; i++)
         {
-            taskStartTime[taskOrder[i] - 1] = curTime;
-            curTime += parameters.TaskRequiredTime[taskOrder[i] - 1];
-            taskEndTime[taskOrder[i] - 1] = curTime;
+            taskStartTime[taskOrder[i]] = curTime;
+            curTime += parameters.TaskRequiredTime[taskOrder[i]];
+            taskEndTime[taskOrder[i]] = curTime;
         }
+    }
+
+    /// <summary>
+    /// Проверить допустимость решения (поступила ли заказ на работу)
+    /// </summary>
+    /// <param name="parameters">Начальные условия задачи для выполнения.</param>
+    /// <param name="taskOrder">Порядок выполнения работ.</param>
+    /// <returns></returns>
+    public static bool ValidateSolution(in ProblemParams parameters, in int[] taskOrder)
+    {
+        int curTime = 0;
+
+        foreach (int i in taskOrder)
+        {
+            if (parameters.TaskArrivalTime[i] > curTime)
+            {
+                return false;
+            }
+            curTime += parameters.TaskRequiredTime[i];
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Вывести перестановку и значение её целевой функции.
+    /// </summary>
+    /// <param name="parameters">Данные о задаче.</param>
+    /// <param name="taskOrder">Порядок выполнения задач.</param>
+    public static void OutputSolutionData(ProblemParams parameters, in int[] taskOrder)
+    {
+        WriteLine("Порядок:" + TurnArrayToString(taskOrder) + "; Целевая функция: " 
+            + GetFitness(parameters ,taskOrder));
+    }
+
+    /// <summary>
+    /// Перевод массива в string
+    /// </summary>
+    /// <param name="array">Массив перестановки.</param>
+    /// <returns>Строковое представление массива.</returns>
+    public static string TurnArrayToString(in int[] array)
+    {
+        string str = string.Empty;
+        string ch = "";
+
+        foreach (int i in array)
+        {
+            str += ch + (i + 1).ToString();
+            ch = " ";
+        }
+
+        return str;
     }
 }

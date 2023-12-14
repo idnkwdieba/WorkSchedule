@@ -11,12 +11,10 @@ public class ProblemSolution
     private int[]? _tasksOrder; // порядок выполнения работ
     private int[]? _taskStartTime; // время начала выполнения каждой работы
     private int[]? _taskEndTime; // время окончания выполнения каждой работы
-    private int _goalFunction; // целевая функция
 
     public ProblemSolution(ProblemParams problem)
     {
         Problem = problem;
-
     }
 
     /// <summary>
@@ -124,11 +122,11 @@ public class ProblemSolution
     {
         get
         {
-            return _goalFunction;
-        }
-        private set
-        {
-            _goalFunction = value;
+            if (_tasksOrder == null)
+            {
+                return int.MaxValue;
+            }
+            return ProblemParams.GetFitness(_problem, _tasksOrder);
         }
     }
 
@@ -141,7 +139,18 @@ public class ProblemSolution
     {
         // Вызов алгоритма перебора
         BruteForceAlgorithm.RunBruteForceAlg(solution.Problem, ref solution._tasksOrder!);
-        solution.GoalFunction = ProblemParams.GetFitness(solution.Problem, solution._tasksOrder!);
+        ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
+            out solution._taskStartTime, out solution._taskEndTime);
+    }
+    // Решение тасующим методом прыгающих лягушек
+    public void LeapingFrogsSolution()
+    {
+        LeapingFrogsSolution(this);
+    }
+    public static void LeapingFrogsSolution(ProblemSolution solution)
+    {
+        // Вызов тасующего алгоритма прыгающих лягушек
+        FrogsAlgorithm.RunFrogsAlg(solution.Problem, ref solution._tasksOrder!);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);
     }
@@ -165,11 +174,11 @@ public class ProblemSolution
         }
 
         solution.Problem.Print();
-        WriteLine("~ Оптимальное решение задачи (метод перебора):");
+        WriteLine("~ Оптимальное решение задачи, найденное методом:");
         Write("Порядок выполнения работ:");
         foreach (int value in solution.TaskOrder)
         {
-            Write(" " + value);
+            Write(" " + (value+1));
         }
         WriteLine();
         Write("Время начала выполнения работ:");
@@ -187,6 +196,10 @@ public class ProblemSolution
         Write($"Целевая функция: {solution.GoalFunction}");
     }
 
+    /// <summary>
+    /// Вывод цветной строки.
+    /// </summary>
+    /// <param name="message">Сообщение для вывода.</param>
     private static void WriteColor(string message)
     {
         Console.ForegroundColor = ConsoleColor.Red;

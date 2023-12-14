@@ -11,6 +11,7 @@
 		<ProjectReference Include="..\ProblemParamsClassLib\ProblemParamsClassLib.csproj" />
 		<ProjectReference Include="..\ProblemSolutionClassLib\ProblemSolutionClassLib.csproj" />
 		<ProjectReference Include="..\AlgorithmsClassLib\AlgorithmsClassLib.csproj" />
+		<ProjectReference Include="..\ProblemGenerationClassLib\ProblemGenerationClassLib.csproj" />
 	</ItemGroup>
 
 </Project>
