@@ -8,7 +8,7 @@ public static class UniformDistribution
     /// <param name="numOfTasks">Число работ в задаче.</param>
     /// <returns>Задачу расписаний для одного станка.</returns>
     /// <exception cref="ArgumentException"></exception>
-    public static ProblemParams GenerateProblemUD(int numOfTasks = 5)
+    public static ProblemParams GenerateProblemUD(int numOfTasks = 10)
     {
         // Если переданы некорректные входные параметры
         if (numOfTasks <= 1)
@@ -27,8 +27,8 @@ public static class UniformDistribution
         for (int i = 0; i < numOfTasks; i++)
         {
             requiredTimeArr[i] = rand.Next(1, 6);
-            arrivalTimeArr[i] = rand.Next(0, 3);
-            completionGoalArr[i] = rand.Next(arrivalTimeArr[i] + 1, arrivalTimeArr[i] + 6);
+            arrivalTimeArr[i] = rand.Next(0, numOfTasks / 2 + numOfTasks % 2);
+            completionGoalArr[i] = rand.Next(arrivalTimeArr[i] + 1, arrivalTimeArr[i] + numOfTasks);
             penaltyArr[i] = rand.Next(1, 4);
         }
 
@@ -40,7 +40,7 @@ public static class UniformDistribution
         }
 
         // Вернуть экземпляр задачи
-        return new ProblemParams(numOfTasks,requiredTimeArr, arrivalTimeArr,
+        return new ProblemParams(numOfTasks, requiredTimeArr, arrivalTimeArr,
             completionGoalArr, penaltyArr);
     }
 }

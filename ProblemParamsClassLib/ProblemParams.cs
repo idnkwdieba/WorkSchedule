@@ -350,11 +350,11 @@ public class ProblemParams
     }
 
     /// <summary>
-    /// Проверить допустимость решения (поступила ли заказ на работу)
+    /// Проверить допустимость решения.
     /// </summary>
     /// <param name="parameters">Начальные условия задачи для выполнения.</param>
     /// <param name="taskOrder">Порядок выполнения работ.</param>
-    /// <returns>true, если первое решение является более оптимальным;<br/>
+    /// <returns>true, если перестановка допустима;<br/>
     /// false, в противном случае.</returns>
     public static bool ValidateSolution(in ProblemParams parameters, in int[] taskOrder)
     {
@@ -371,10 +371,28 @@ public class ProblemParams
                 $"имел указатель на null.");
         }
 
-        int curTime = 0;
+        int curTime = 0; // текущий такт времени
 
+        // Проверить, корректны ли значения в расписании
+        int[] indCount = new int[parameters.NumOfTasks];
+        for (int i = 0; i < parameters.NumOfTasks; i++)
+        {
+            for (int j = 0; j < parameters.NumOfTasks; j++)
+            {
+                // Если индекс работы на j-й позиции массива равен i
+                indCount[i] += (taskOrder[j] == i ? 1 : 0);
+            }
+        }
+        // Если какой-то из индексов не встретился
+        if (indCount.Contains(0))
+        {
+            return false;
+        }
+
+        // Проверить, доступны ли работы для выполнения в заданном порядке
         foreach (int i in taskOrder)
         {
+            // Если первая работа в очереди на выполнение ещё не поступила
             if (parameters.TaskArrivalTime[i] > curTime)
             {
                 return false;

@@ -25,78 +25,129 @@ namespace GraphApp
     {
         public MainWindow()
         {
+
             InitializeComponent();
 
             // Путь к файлу для чтения данных
             string fileName = "devData.txt";
-            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) 
+            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
                 + "\\" + fileName;
 
             string? line; // строка считанная из файла
-            List<double> devValues = new(); // список отклонений
+            List<double> frogsDevValues = new(); // список отклонений алгоритма лягушек
+            List<double> egaDevValues = new(); // список отклонений ЭГА
 
             // Считывание данных из файла
             StreamReader sr = new StreamReader(filePath);
             line = sr.ReadLine();
             while (line != null)
             {
-                devValues.Add(double.Parse(line));
+                frogsDevValues.Add(double.Parse(line.Substring(0, line.IndexOf(' '))));
+                egaDevValues.Add(double.Parse(line.Substring(line.IndexOf(' ') + 1)));
                 line = sr.ReadLine();
             }
             sr.Close();
 
             // Данные для графиков
-            double[] values = new double[11];
-            double[] positions = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10 };
-            string[] lables = { "0% - 10%", "10% - 20%", "20% - 30%", "30% - 40%", "40% - 50%",
-            "50% - 60%", "60% - 70%", "70% - 80%", "80% - 90%", "90% - 100%", ">100%"};
+            double[] frogsValues = new double[11];
+            double[] egaValues = new double[11];
+            double[] positions = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            string[] groupNames = { "0% - 10%", "10% - 20%", "20% - 30%", "30% - 40%", "40% - 50%",
+                "50% - 60%", "60% - 70%", "70% - 80%", "80% - 90%", "90% - 100%", ">100%"};
+            string[]seriesNames = { "Прыгающие лягушки", "ЭГА" };
+            double[][] valuesBySeries = { frogsValues, egaValues };
 
-            // Подсчёт данных для гистограмм
-            foreach(double val in devValues)
+            // Подсчёт данных по лягушкам для гистограмм
+            foreach (double val in frogsDevValues)
             {
                 int dividedVal = (int)(val / 10);
 
                 switch (dividedVal)
                 {
                     case 0:
-                        values[0]++;
+                        frogsValues[0]++;
                         break;
                     case 1:
-                        values[1]++;
+                        frogsValues[1]++;
                         break;
                     case 2:
-                        values[2]++;
+                        frogsValues[2]++;
                         break;
                     case 3:
-                        values[3]++;
+                        frogsValues[3]++;
                         break;
                     case 4:
-                        values[4]++;
+                        frogsValues[4]++;
                         break;
                     case 5:
-                        values[5]++;
+                        frogsValues[5]++;
                         break;
                     case 6:
-                        values[6]++;
+                        frogsValues[6]++;
                         break;
                     case 7:
-                        values[7]++;
+                        frogsValues[7]++;
                         break;
                     case 8:
-                        values[8]++;
+                        frogsValues[8]++;
                         break;
                     case 9:
-                        values[9]++;
+                        frogsValues[9]++;
                         break;
                     default:
-                        values[10]++;
+                        frogsValues[10]++;
+                        break;
+                }
+            }
+
+            // Подсчёт данных по ЭГА для гистограмм
+            foreach (double val in egaDevValues)
+            {
+                int dividedVal = (int)(val / 10);
+
+                switch (dividedVal)
+                {
+                    case 0:
+                        egaValues[0]++;
+                        break;
+                    case 1:
+                        egaValues[1]++;
+                        break;
+                    case 2:
+                        egaValues[2]++;
+                        break;
+                    case 3:
+                        egaValues[3]++;
+                        break;
+                    case 4:
+                        egaValues[4]++;
+                        break;
+                    case 5:
+                        egaValues[5]++;
+                        break;
+                    case 6:
+                        egaValues[6]++;
+                        break;
+                    case 7:
+                        egaValues[7]++;
+                        break;
+                    case 8:
+                        egaValues[8]++;
+                        break;
+                    case 9:
+                        egaValues[9]++;
+                        break;
+                    default:
+                        egaValues[10]++;
                         break;
                 }
             }
 
             // добавление столбцов и подписей под ними
-            HistogramGraph.Plot.AddBar(values, positions);
-            HistogramGraph.Plot.XTicks(positions, lables);
+            HistogramGraph.Plot.AddBarGroups(groupNames, seriesNames, valuesBySeries, null);
+
+            // Добавить легенду.
+            HistogramGraph.Plot.Legend(location: Alignment.UpperRight);
 
             // поправить минимальное значение по оси y
             HistogramGraph.Plot.SetAxisLimits(yMin: 0);

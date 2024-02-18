@@ -168,7 +168,9 @@ public class ProblemSolution
         }
 
         // Вызов алгоритма перебора
-        BruteForceAlgorithm.RunBruteForceAlg(solution.Problem, ref solution._tasksOrder!);
+        BruteForceAlgorithm.RunBruteForceAlg(
+            solution.Problem,
+            ref solution._tasksOrder!);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);
     }
@@ -195,7 +197,47 @@ public class ProblemSolution
         }
 
         // Вызов тасующего алгоритма прыгающих лягушек
-        FrogsAlgorithm.RunFrogsAlg(solution.Problem, ref solution._tasksOrder!);
+        FrogsAlgorithm.RunFrogsAlg(
+            solution.Problem,
+            ref solution._tasksOrder!,
+            solution.Problem.NumOfTasks - 1,
+            solution.Problem.NumOfTasks,
+            solution.Problem.NumOfTasks * 2,
+            (solution.Problem.NumOfTasks > 3 ? solution.Problem.NumOfTasks - 3 : 1));
+        ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
+            out solution._taskStartTime, out solution._taskEndTime);
+    }
+
+
+    /// <summary>
+    /// Решение эволюционно-генетическим алгоритмом.
+    /// </summary>
+    public void EgaSolution()
+    {
+        EgaSolution(this);
+    }
+    /// <summary>
+    /// Решение эволюционно-генетическим алгоритмом.
+    /// </summary>
+    /// <param name="solution">Решение, в которые сохраняются результаты.</param>
+    public static void EgaSolution(ProblemSolution solution)
+    {
+        // Проверка данных
+        // Если передан указатель на null
+        if (solution == null)
+        {
+            throw new NullReferenceException($"Параметр {nameof(solution)} " +
+                $"имел указатель на null.");
+        }
+
+        // Вызов ЭГА.
+        EvolutionaryGeneticAlgorithm.RunEvolGenAlg(
+            parameters: solution.Problem,
+            taskOrder: ref solution._tasksOrder!,
+            populationQuantity: solution.Problem.NumOfTasks * solution.Problem.NumOfTasks,
+            numOfEgaCycles: solution.Problem.NumOfTasks,
+            hammingDist: (solution.Problem.NumOfTasks > 7 ? solution.Problem.NumOfTasks - 4 : 4),
+            mutationChance: (double)1 / solution.Problem.NumOfTasks);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);
     }
@@ -239,7 +281,7 @@ public class ProblemSolution
         Write("Порядок выполнения работ:");
         foreach (int value in solution.TaskOrder)
         {
-            Write(" " + (value+1));
+            Write(" " + (value + 1));
         }
         WriteLine();
         Write("Время начала выполнения работ:");

@@ -1,9 +1,6 @@
 ﻿
 namespace WorkSchedule.Shared;
 
-using System.Diagnostics.CodeAnalysis;
-using static System.Console;
-
 public static class FrogsAlgorithm
 {
     /// <summary>
@@ -16,7 +13,7 @@ public static class FrogsAlgorithm
     /// <param name="memeplexCycles">Количество циклов в работе алгоритма для мемплекса.</param>
     /// <param name="populationCycles">Количество циклов в работе алгоритма для популяции в целом.</param>
     public static void RunFrogsAlg(in ProblemParams parameters, ref int[] taskOrder,
-        int numOfSubgroups = 2, int subgroupQuantity = 4, int memeplexCycles = 1, int populationCycles = 1)
+        int numOfSubgroups = 2, int subgroupQuantity = 4, int memeplexCycles = 16, int populationCycles = 2)
     {
         // Если переданы некорректные параметры
         // Если числовые параметры меньше или равны нуля
@@ -40,8 +37,9 @@ public static class FrogsAlgorithm
         // Список подгрупп
         List<List<int[]>> subgroups = new();
         // Генерация популяции
-        List<int[]> population = GeneratePopulation(parameters, parameters.NumOfTasks, 
+        List<int[]> population = Population.GeneratePopulation(parameters, parameters.NumOfTasks,
             numOfSubgroups * subgroupQuantity);
+
         // лучшая особь в популяции
         int[] bestIndividual = new int[parameters.NumOfTasks];
         // лучшие особи в мемплексах
@@ -54,7 +52,7 @@ public static class FrogsAlgorithm
         for (int plnItr = 0; plnItr < populationCycles; plnItr++)
         {
             // Сортировка по критерию оптимальности, сохранение лучшей особи
-            SortByFitness(parameters, ref population);
+            Population.SortByFitness(parameters, ref population);
             population[0].CopyTo(bestIndividual, 0);
 
             // Разбивка на подгруппы
@@ -81,51 +79,49 @@ public static class FrogsAlgorithm
                         bestMemeplexIndividual[i][ind] = subgroups[i][0][ind];
                     }
 
-                    // Для каждой лягушки кроме лучшей
-                    for (int j = 1; j < subgroupQuantity; j++)
+                    // Для худшей лягушки в мемплексе
+
+                    // Сохранить предыдущее значение
+                    subgroups[i][subgroupQuantity - 1].CopyTo(tmpOrder, 0);
+
+                    // Переместить лягушку в сторону лучшей лягушки в мемплексе
+                    MoveTo(parameters.NumOfTasks, subgroups[i][subgroupQuantity - 1], subgroups[i][0]);
+
+                    // Если приспособленность не стала лучше...
+                    if (!parameters.CheckForBetterFitness(subgroups[i][subgroupQuantity - 1], tmpOrder))
                     {
-                        // Переместить лягушку в сторону лучшей лягушки в мемплексе
+                        // ...переместить лягушку в сторону глобально лучшей лягушки
+                        MoveTo(parameters.NumOfTasks, subgroups[i][subgroupQuantity - 1], bestIndividual);
 
-                        // Временное решение, пока не понятно как реализовать алгоритм для теории расписаний
-                        subgroups[i][j].CopyTo(tmpOrder, 0);
-
-                        if (!parameters.CheckForBetterFitness(subgroups[i][j], tmpOrder))
+                        // Если и это не помогло...
+                        if (!parameters.CheckForBetterFitness(subgroups[i][subgroupQuantity - 1], tmpOrder))
                         {
-
-                            // Если это не улучшило её приспособленность - переместить лягушку в сторону глобально
-                            // лучшей лягушки
-
-                            // Временное решение, пока не понятно как реализовать алгоритм для теории расписаний
-                            subgroups[i][j].CopyTo(tmpOrder, 0);
-
-                            //ProblemParams.GetFitness(parameters, subgroups[i][j])
-                            //<= ProblemParams.GetFitness(parameters, tmpOrder)
-
-                            if (!parameters.CheckForBetterFitness(subgroups[i][j], tmpOrder))
-                            {
-                                // Если и это не помогло - переместить лягушку в случайное место на поле
-                                subgroups[i][j] = RandomIndividual(parameters.NumOfTasks);
-                            }
-                        }
-
-                        // Если найдена лучшая особь в мемплексе
-                        if (parameters.CheckForBetterFitness(subgroups[i][j], bestMemeplexIndividual[i]))
-                        {
-                            // Обновить информацию о лучшей особи в мемплексе
-                            subgroups[i][j].CopyTo(bestMemeplexIndividual[i], 0);
-                        }
-
-                        // Если найдена лучшая особь во всей популяции
-                        if (parameters.CheckForBetterFitness(subgroups[i][j], bestIndividual))
-                        {
-                            // Обновить лучшую особь
-                            subgroups[i][j].CopyTo(bestIndividual, 0);
+                            //...переместить лягушку в случайное место на поле
+                            subgroups[i][subgroupQuantity - 1] = Population.RandomIndividual(parameters.NumOfTasks);
                         }
                     }
 
-                    // Обновить порядок особей в мемлексе
-                    List<int[]> tmpList = subgroups[i];
-                    SortByFitness(parameters, ref tmpList);
+                    // Если в результате улучшилась приспособленность особи
+                    if (parameters.CheckForBetterFitness(subgroups[i][subgroupQuantity - 1], tmpOrder))
+                    {
+                        // Если найдена лучшая особь в мемплексе
+                        if (parameters.CheckForBetterFitness(subgroups[i][subgroupQuantity - 1], bestMemeplexIndividual[i]))
+                        {
+                            // Обновить информацию о лучшей особи в мемплексе
+                            subgroups[i][subgroupQuantity - 1].CopyTo(bestMemeplexIndividual[i], 0);
+
+                            // Если найдена лучшая особь во всей популяции
+                            if (parameters.CheckForBetterFitness(subgroups[i][subgroupQuantity - 1], bestIndividual))
+                            {
+                                // Обновить лучшую особь
+                                subgroups[i][subgroupQuantity - 1].CopyTo(bestIndividual, 0);
+                            }
+                        }
+
+                        // Обновить порядок особей в мемлексе
+                        List<int[]> tmpList = subgroups[i];
+                        Population.SortByFitness(parameters, ref tmpList);
+                    }
                 }
             }
         }
@@ -135,139 +131,24 @@ public static class FrogsAlgorithm
     }
 
     /// <summary>
-    /// Создание новой популяции особей.
+    /// Переместить лягушку в сторону лягушки-лидера в группе.
     /// </summary>
-    /// <param name="length">Количество задач для выполнения.</param>
-    /// <param name="quantity">Число случайных порядков выполнения задач для генерации.</param>
-    /// <returns>Множество случайных порядков обработки задач.</returns>
-    /// <exception cref="ArgumentException"></exception>
-    public static List<int[]> GeneratePopulation(ProblemParams parameters, int length, int quantity)
+    /// <param name="numOfTasks">Число работ.</param>
+    /// <param name="worstFrog">Худшая лягушка в группе.</param>
+    /// <param name="leaderFrog">Лягушка-лидер в группе.</param>
+    public static void MoveTo(int numOfTasks, int[] worstFrog, in int[] leaderFrog)
     {
-        // Если переданы некорректные параметры
-        if (length <= 0 || quantity <= 0)
-        {
-            throw new ArgumentException(
-                $"{nameof(length)} или {nameof(quantity)} было меньше либо равно нуля.");
-        }
-
-        // Список популяции из множества особей
-        List<int[]> population = new List<int[]>();
-
-        Random rand = new Random();
-
-        for (int i = 0; i < quantity; i++)
-        {
-            population.Add(RandomIndividual(length));
-        }
-
-        // Гарантировать нахождение хотя бы одного допустимого решения в популяции
-        // Проверка допустимости решений в популяции
-        foreach(int[] i in population)
-        {
-            // Если найдено хотя бы одно допустимое решение
-            if (ProblemParams.ValidateSolution(parameters, i))
-            {
-                // Вернуть популяцию
-                return population;
-            }
-        }
-        // Если не найдено допустимых решений
-        do
-        {
-            // Создавать случайную особь...
-            population[0] = RandomIndividual(length);
-        } while (!ProblemParams.ValidateSolution(parameters, population[0])); // ...пока она не будет
-                                                                              // являться допустимой
-        return population;
-    }
-
-    /// <summary>
-    /// Создает новую случайную особь.
-    /// </summary>
-    /// <param name="length">Количество задач.</param>
-    /// <returns>Случайную перестановку порядка выполнения работ.</returns>
-    public static int[] RandomIndividual(int length)
-    {
-        // Если переданы некорректные параметры
-        if (length <= 0)
-        {
-            throw new ArgumentException($"{nameof(length)} было меньше или равно нуля.");
-        }
-
-        int[] individual = new int[length];
         Random rand = new();
-        int randNum;
 
-        for (int i = 0; i < length; ) 
+        // Для каждой координаты вектора
+        for (int i = 0; i < numOfTasks; i++)
         {
-            // генерация случайного значения
-            randNum = rand.Next(1, length+1);
-            // если такое значение встречалось ранее
-            if (individual.Contains(randNum))
-            {
-                continue;
-            }
-            // в противном случае
-            individual[i] = randNum;
-            i++;
-        }
-        // Уменьшить значения индексов на единицу
-        for (int i = 0; i < length; i++)
-        {
-            individual[i] -= 1;
-        }
+            // Переместить в сторону координаты лучшей лягушки в группе
+            worstFrog[i] = (int)Math.Round((rand.NextDouble() * (leaderFrog[i] - worstFrog[i]) + worstFrog[i]),
+                MidpointRounding.AwayFromZero);
 
-        return individual;
-    }
-
-    /// <summary>
-    /// Сортировка списка особей по оптимальности.
-    /// </summary>
-    /// <param name="parameters">Данные задачи.</param>
-    /// <param name="population">Список особей для сортировки.</param>
-    /// <exception cref="NullReferenceException"></exception>
-    public static void SortByFitness(in ProblemParams parameters, ref List<int[]> population)
-    {
-        // если переданы некорректные параметры
-        if (parameters == null || population == null)
-        {
-            throw new NullReferenceException($"{nameof(parameters)} " +
-                $"или {nameof(population)} имело указатель на null.");
-        }
-
-        int left = 1; int right = population.Count - 1;
-        int[] tmp;
-
-        // цикл сортировки
-        while (left <= right)
-        {
-            // цикл справа налево 
-            for (int i = right; i >= left; i--)
-            {
-                // если критерий оптимальности (i-1)-й особи больше критерия оптимальности i-й особи
-                if (parameters.CheckForBetterFitness(population[i], population[i-1]))
-                {
-                    // поменять особи местами
-                    tmp = population[i];
-                    population[i] = population[i - 1];
-                    population[i - 1] = tmp;
-                }
-            }
-            left++;
-
-            // цикл слева направо
-            for (int i = left; i <= right; i++)
-            {
-                // если критерий оптимальности (i-1)-й особи больше критерия оптимальности i особи
-                if (parameters.CheckForBetterFitness(population[i], population[i - 1]))
-                {
-                    // поменять особи местами
-                    tmp = population[i];
-                    population[i] = population[i - 1];
-                    population[i - 1] = tmp;
-                }
-            }
-            right--;
+            // Держать координаты в допустимых границах
+            worstFrog[i] = worstFrog[i] % numOfTasks;
         }
     }
 }

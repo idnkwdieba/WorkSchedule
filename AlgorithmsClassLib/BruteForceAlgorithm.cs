@@ -23,6 +23,13 @@ public static class BruteForceAlgorithm
         // Если список индексов по длине совпал с числом работ
         if (prevIndexes.Count == parameters.NumOfTasks)
         {
+            // debug: вывести перестановку
+            /*
+            int[] tmpArr = new int[parameters.NumOfTasks];
+            prevIndexes.CopyTo(tmpArr, 0);
+            Console.WriteLine(ProblemParams.TurnArrayToString(tmpArr));
+            */
+
             // Поиск решения
 
             int[] tmpTaskOrder = new int[parameters.NumOfTasks]; // временный массив для порядка выполнения работы
