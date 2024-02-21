@@ -1,6 +1,7 @@
 ﻿
 namespace WorkSchedule.Shared;
 
+using System.Text;
 using static System.Console;
 
 public class ProblemSolution
@@ -25,6 +26,16 @@ public class ProblemSolution
         }
 
         Problem = problem;
+    }
+
+    /// <summary>
+    /// Проверка допустимости решения.
+    /// </summary>
+    /// <returns>True, если решение допустимо;<br/>
+    /// False, в противном случае.</returns>
+    public bool ValidateSolution()
+    {
+        return ProblemParams.ValidateSolution(_problem, _tasksOrder!);
     }
 
     /// <summary>
@@ -198,12 +209,12 @@ public class ProblemSolution
 
         // Вызов тасующего алгоритма прыгающих лягушек
         FrogsAlgorithm.RunFrogsAlg(
-            solution.Problem,
-            ref solution._tasksOrder!,
-            solution.Problem.NumOfTasks - 1,
-            solution.Problem.NumOfTasks,
-            solution.Problem.NumOfTasks * 2,
-            (solution.Problem.NumOfTasks > 3 ? solution.Problem.NumOfTasks - 3 : 1));
+            parameters: solution.Problem,
+            taskOrder: ref solution._tasksOrder!,
+            numOfSubgroups: 2,
+            subgroupQuantity: solution.Problem.NumOfTasks,
+            memeplexCycles: 5,
+            populationCycles: 2);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);
     }
@@ -234,10 +245,10 @@ public class ProblemSolution
         EvolutionaryGeneticAlgorithm.RunEvolGenAlg(
             parameters: solution.Problem,
             taskOrder: ref solution._tasksOrder!,
-            populationQuantity: solution.Problem.NumOfTasks * solution.Problem.NumOfTasks,
+            populationQuantity: solution.Problem.NumOfTasks * solution.Problem.NumOfTasks * 2,
             numOfEgaCycles: solution.Problem.NumOfTasks,
-            hammingDist: (solution.Problem.NumOfTasks > 7 ? solution.Problem.NumOfTasks - 4 : 4),
-            mutationChance: (double)1 / solution.Problem.NumOfTasks);
+            hammingDist: (solution.Problem.NumOfTasks > 7 ? solution.Problem.NumOfTasks - 2 : 4),
+            mutationChance: 0.1);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);
     }
@@ -297,6 +308,21 @@ public class ProblemSolution
         }
         WriteLine();
         Write($"Целевая функция: {solution.GoalFunction}");
+    }
+
+    /// <summary>
+    /// Получить строковое представление задачи и критерия наиболее оптимального решения.
+    /// </summary>
+    /// <returns>Строку с условиями задачи и критерием оптимальности.</returns>
+    public string GetProblemStringRepr()
+    {
+        StringBuilder sb = new();
+
+        sb.Append($"{Problem.ToString()}\n")
+            .Append($"{ProblemParams.GetFitness(Problem, TaskOrder!)}\n")
+            .Append('%');
+
+        return sb.ToString();
     }
 
     /// <summary>

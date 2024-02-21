@@ -1,6 +1,7 @@
 ﻿
 namespace WorkSchedule.Shared;
 
+using System.Text;
 using static System.Console;
 
 public class ProblemParams
@@ -25,7 +26,7 @@ public class ProblemParams
             throw new ArgumentException($"Параметр {nameof(numOfTasks)} был меньше либо равен нулю.");
         }
         // Если один из массивов указывает на null
-        if (taskRequiredTime == null || taskArrivalTime == null 
+        if (taskRequiredTime == null || taskArrivalTime == null
             || taskCompletionGoal == null || taskPenalty == null)
         {
             throw new NullReferenceException($"Один из параметров {nameof(taskRequiredTime)}, {nameof(taskArrivalTime)}, " +
@@ -65,7 +66,7 @@ public class ProblemParams
         get
         {
             int[] tmpArr = new int[NumOfTasks];
-            _taskRequiredTime.CopyTo(tmpArr,0);
+            _taskRequiredTime.CopyTo(tmpArr, 0);
             return tmpArr;
         }
         init
@@ -148,7 +149,7 @@ public class ProblemParams
 
         WriteLine($"~ Задача для {problemParams.NumOfTasks} работ:");
         Write("Требуемое время для выполнения каждой работы:");
-        foreach(int value in problemParams.TaskRequiredTime)
+        foreach (int value in problemParams.TaskRequiredTime)
         {
             Write(" " + value);
         }
@@ -285,7 +286,7 @@ public class ProblemParams
                 $"{nameof(secondTaskOrder)} имел указатель на null.");
         }
         // Если длина одного из массивов не совпадает с данными задачи
-        if (firstTaskOrder.Length != problemParams.NumOfTasks 
+        if (firstTaskOrder.Length != problemParams.NumOfTasks
             || secondTaskOrder.Length != problemParams.NumOfTasks)
         {
             throw new ArgumentException($"Один из массивов {nameof(firstTaskOrder)}, " +
@@ -422,8 +423,33 @@ public class ProblemParams
                 $"имел указатель на null.");
         }
 
-        WriteLine("Порядок:" + TurnArrayToString(taskOrder) + "; Целевая функция: " 
-            + GetFitness(parameters ,taskOrder));
+        WriteLine("Порядок:" + UserFriendlyArrayToString(taskOrder) + "; Целевая функция: "
+            + GetFitness(parameters, taskOrder));
+    }
+
+    /// <summary>
+    /// Перевод массива в string
+    /// </summary>
+    /// <param name="array">Массив перестановки.</param>
+    /// <returns>Строковое представление массива.</returns>
+    public static string? UserFriendlyArrayToString(in int[] array)
+    {
+        // Если массив указывает на null 
+        if (array == null)
+        {
+            return null;
+        }
+
+        StringBuilder sb = new();
+        int arrLength = array.Length;
+
+        sb.Append(array[0] + 1);
+        for (int index = 1; index < arrLength; index++)
+        {
+            sb.Append($" {array[index] + 1}");
+        }
+
+        return sb.ToString();
     }
 
     /// <summary>
@@ -439,15 +465,32 @@ public class ProblemParams
             return null;
         }
 
-        string str = string.Empty;
-        string ch = "";
+        StringBuilder sb = new();
+        int arrLength = array.Length;
 
-        foreach (int i in array)
+        sb.Append(array[0]);
+        for (int index = 1; index < arrLength; index++)
         {
-            str += ch + (i + 1).ToString();
-            ch = " ";
+            sb.Append($" {array[index]}");
         }
 
-        return str;
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Получить строковое представление условий задачи.
+    /// </summary>
+    /// <returns>Строка с условиями задачи.</returns>
+    public override string ToString()
+    {
+        StringBuilder sb = new();
+
+        sb.Append($"{_numOfTasks}\n");
+        sb.Append($"{TurnArrayToString(TaskRequiredTime)}\n");
+        sb.Append($"{TurnArrayToString(TaskArrivalTime)}\n");
+        sb.Append($"{TurnArrayToString(TaskCompletionGoal)}\n");
+        sb.Append(TurnArrayToString(TaskPenalty));
+
+        return sb.ToString();
     }
 }

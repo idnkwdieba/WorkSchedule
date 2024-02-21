@@ -5,13 +5,37 @@ using static System.Console;
 
 public static class BruteForceAlgorithm
 {
+    static int NumOfTasks;
+
     /// <summary>
     /// Решить задачу расписаний перебором всех возможных перестановок.
     /// </summary>
     /// <param name="parameters">Параметры задачи.</param>
     /// <param name="taskOrder">Получаемый порядок выполнения задач.</param>
     /// <param name="prevIndexes">Индексы, использованные ранее в перестановке.</param>
-    public static void RunBruteForceAlg(in ProblemParams parameters, ref int[] taskOrder, 
+    public static void RunBruteForceAlg(in ProblemParams parameters, ref int[] taskOrder)
+    {
+        // Сохранить число задач в статическую переменную.
+        NumOfTasks = parameters.NumOfTasks;
+
+        // Заполнить начальный массив порядка выполнения работ.
+        taskOrder = new int[NumOfTasks];
+        for (int index = 0; index < NumOfTasks; index++)
+        {
+            taskOrder[index] = index;
+        }
+
+        // Пройтись по всем перестановкам.
+        CheckAllVariants(parameters, ref taskOrder);
+    }
+
+    /// <summary>
+    /// Перебор всех возможных перестановок.
+    /// </summary>
+    /// <param name="parameters">Параметры задачи.</param>
+    /// <param name="taskOrder">Получаемый порядок выполнения задач.</param>
+    /// <param name="prevIndexes">Индексы, использованные ранее в перестановке.</param>
+    public static void CheckAllVariants(in ProblemParams parameters, ref int[] taskOrder,
         List<int>? prevIndexes = null)
     {
         // Если список предыдущих индексов ещё не был создан
@@ -21,39 +45,18 @@ public static class BruteForceAlgorithm
         }
 
         // Если список индексов по длине совпал с числом работ
-        if (prevIndexes.Count == parameters.NumOfTasks)
+        if (prevIndexes.Count == NumOfTasks)
         {
-            // debug: вывести перестановку
-            /*
-            int[] tmpArr = new int[parameters.NumOfTasks];
-            prevIndexes.CopyTo(tmpArr, 0);
-            Console.WriteLine(ProblemParams.TurnArrayToString(tmpArr));
-            */
-
             // Поиск решения
 
-            int[] tmpTaskOrder = new int[parameters.NumOfTasks]; // временный массив для порядка выполнения работы
+            // Временный массив для порядка выполнения работы
+            int[] tmpTaskOrder = new int[NumOfTasks];
 
             // копировать порядок выполнения работ из списка в массив
             prevIndexes.CopyTo(tmpTaskOrder, 0);
 
-            // Вывод данных полученной перестановки
-            /*
-            if (!ProblemParams.ValidateSolution(parameters, tmpTaskOrder))
-            {
-                // Недопустимое решение
-                WriteLine("Порядок:" + ProblemParams.TurnArrayToString(tmpTaskOrder) 
-                    + "; Является недопустимым решением");
-            }
-            else
-            {
-                // Допустимое решение
-                ProblemParams.OutputSolutionData(parameters, tmpTaskOrder);
-            }
-            */
-
             // Если полученное решение является более оптимальным, чем предыдущее
-            if (taskOrder == null || parameters.CheckForBetterFitness(tmpTaskOrder, taskOrder))
+            if (parameters.CheckForBetterFitness(tmpTaskOrder, taskOrder))
             {
                 // Присвоить значения соответствующим параметрам
                 taskOrder = tmpTaskOrder;
@@ -63,7 +66,7 @@ public static class BruteForceAlgorithm
         }
 
         // Перебор всех вариантов на шаг ниже
-        for (int i = 0; i < parameters.NumOfTasks; i++)
+        for (int i = 0; i < NumOfTasks; i++)
         {
             // Если данный индекс уже используется в перестановке
             if (prevIndexes.Contains(i))
@@ -73,7 +76,7 @@ public static class BruteForceAlgorithm
 
             // Повторный вызов функции
             prevIndexes.Add(i);
-            RunBruteForceAlg(parameters, ref taskOrder, prevIndexes);
+            CheckAllVariants(parameters, ref taskOrder, prevIndexes);
             prevIndexes.Remove(i);
         }
     }

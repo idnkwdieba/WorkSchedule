@@ -86,12 +86,12 @@ internal class Program
         */
 
 
+        // 4. Генерация условий и нахождение наилучшего решения 100 задач.
 
-        // 4. Прогонка 100 случайных задач с сохранением отклонений в файл
+        // ProblemSimulation.GenerateProblems();
 
-        ProblemSimulation.RunSimulation(10);
-        WriteLine("Задачи были успешно решены, отклонения сохранены в файл.");
+        // 5. Прогонка 100 случайных задач с сохранением отклонений в файл
 
-
+        ProblemSimulation.RunSimulation();
     }
 }

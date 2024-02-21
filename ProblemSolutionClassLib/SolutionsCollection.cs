@@ -6,14 +6,14 @@ using static System.Console;
 public class SolutionsCollection
 {
     private ProblemParams _problemParams; // данные о задаче
-    private ProblemSolution _bruteForceSolution; // решение перебором
+    private int _optimalFitness; // Критерий самого оптимального решения
     private ProblemSolution _leapingFrogsSolution; // решение тасующим алгоритмом прыгающих лягушек
     private ProblemSolution _egaSolution; // решение эволюционно-генетическим алгоритмом
     /// <summary>
     /// Конструктор экземпляра класса.
     /// </summary>
     /// <param name="parameters">Данные о задаче.</param>
-    public SolutionsCollection(ProblemParams parameters)
+    public SolutionsCollection(ProblemParams parameters, int optimalFitness)
     {
         // Проверка корректности передаваемых параметров
         if (parameters == null)
@@ -22,9 +22,7 @@ public class SolutionsCollection
         }
 
         _problemParams = parameters;
-
-        _bruteForceSolution = new ProblemSolution(parameters);
-        _bruteForceSolution.BruteForceSolution();
+        _optimalFitness = optimalFitness;
 
         _leapingFrogsSolution = new ProblemSolution(parameters);
         _leapingFrogsSolution.LeapingFrogsSolution();
@@ -54,9 +52,6 @@ public class SolutionsCollection
                 $"имел указатель на null.");
         }
 
-        Write($"{"Полный перебор",-20}| ");
-        ProblemParams.OutputSolutionData(solutionsCollection._problemParams,
-            solutionsCollection._bruteForceSolution.TaskOrder!);
         Write($"{"Прыгающие лягушки",-20}| ");
         ProblemParams.OutputSolutionData(solutionsCollection._problemParams,
             solutionsCollection._leapingFrogsSolution.TaskOrder!);
@@ -96,16 +91,16 @@ public class SolutionsCollection
         if (!isEgaDev)
         {
             d1 = (solutionsCollection._leapingFrogsSolution.GoalFunction
-                - solutionsCollection._bruteForceSolution.GoalFunction);
-            d2 = d1 / solutionsCollection._bruteForceSolution.GoalFunction;
+                - solutionsCollection._optimalFitness);
+            d2 = d1 / solutionsCollection._optimalFitness;
             d3 = d2 * 100;
             return d3;
         }
 
         // Для ЭГА.
         d1 = (solutionsCollection._egaSolution.GoalFunction 
-            - solutionsCollection._bruteForceSolution.GoalFunction);
-        d2 = d1 / solutionsCollection._bruteForceSolution.GoalFunction;
+            - solutionsCollection._optimalFitness);
+        d2 = d1 / solutionsCollection._optimalFitness;
         d3 = d2 * 100;
 
         return d3;
