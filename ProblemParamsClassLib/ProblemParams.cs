@@ -1,5 +1,4 @@
-﻿
-namespace WorkSchedule.Shared;
+﻿namespace WorkSchedule.Shared;
 
 using System.Text;
 using static System.Console;

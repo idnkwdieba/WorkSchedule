@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace WorkSchedule.Shared;
+﻿namespace WorkSchedule.Shared;
 
 public static class ProblemSimulation
 {
@@ -90,7 +88,7 @@ public static class ProblemSimulation
         StreamWriter sw = new StreamWriter(filePath);
 
         // Прогонка случайных задач
-        for (int i = 0; i < numOfProblems; )
+        for (int i = 0; i < numOfProblems;)
         {
             Console.WriteLine("Задача {0}", i);
 

@@ -1,6 +1,4 @@
-﻿
-using WorkSchedule.Shared;
-using static System.Console;
+﻿using WorkSchedule.Shared;
 
 internal class Program
 {
@@ -90,7 +88,7 @@ internal class Program
 
         // ProblemSimulation.GenerateProblems();
 
-        // 5. Прогонка 100 случайных задач с сохранением отклонений в файл
+        // 5. Прогонка задач из файла с сохранением отклонений в другой файл.
 
         ProblemSimulation.RunSimulation();
     }

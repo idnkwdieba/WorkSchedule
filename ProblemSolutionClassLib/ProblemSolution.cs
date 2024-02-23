@@ -1,5 +1,4 @@
-﻿
-namespace WorkSchedule.Shared;
+﻿namespace WorkSchedule.Shared;
 
 using System.Text;
 using static System.Console;
@@ -197,6 +196,7 @@ public class ProblemSolution
     /// Решение тасующим методом прыгающих лягушек.
     /// </summary>
     /// <param name="solution">Решение, в которые сохраняются результаты.</param>
+
     public static void LeapingFrogsSolution(ProblemSolution solution)
     {
         // Проверка данных
@@ -219,19 +219,20 @@ public class ProblemSolution
             out solution._taskStartTime, out solution._taskEndTime);
     }
 
-
     /// <summary>
     /// Решение эволюционно-генетическим алгоритмом.
     /// </summary>
-    public void EgaSolution()
+    /// <param name="isSecondVersion">Является ли ЭГА второй версией.</param>
+    public void EgaSolution(bool isSecondVersion = false)
     {
-        EgaSolution(this);
+        EgaSolution(this, isSecondVersion);
     }
     /// <summary>
     /// Решение эволюционно-генетическим алгоритмом.
     /// </summary>
     /// <param name="solution">Решение, в которые сохраняются результаты.</param>
-    public static void EgaSolution(ProblemSolution solution)
+    /// <param name="isSecondVersion">Является ли ЭГА второй версией.</param>
+    public static void EgaSolution(ProblemSolution solution, bool isSecondVersion = false)
     {
         // Проверка данных
         // Если передан указатель на null
@@ -248,7 +249,8 @@ public class ProblemSolution
             populationQuantity: solution.Problem.NumOfTasks * solution.Problem.NumOfTasks * 2,
             numOfEgaCycles: solution.Problem.NumOfTasks,
             hammingDist: (solution.Problem.NumOfTasks > 7 ? solution.Problem.NumOfTasks - 2 : 4),
-            mutationChance: 0.1);
+            mutationChance: 0.1,
+            isSecondVersion: isSecondVersion);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);
     }

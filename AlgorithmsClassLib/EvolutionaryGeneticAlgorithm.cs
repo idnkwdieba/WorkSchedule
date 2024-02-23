@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-
-namespace WorkSchedule.Shared;
+﻿namespace WorkSchedule.Shared;
 
 /// <summary>
 /// Эволюционно-генетический алгоритм.
@@ -17,9 +14,10 @@ public class EvolutionaryGeneticAlgorithm
     /// <param name="numOfEgaCycles">Количество циклов работы алгоритма.</param>
     /// <param name="hammingDist">Хеммингово расстояние.</param>
     /// <param name="mutationChance">Шанс мутации.</param>
+    /// <param name="isSecondVersion">Запускать ли вторую версию алгоритма.</param>
     public static void RunEvolGenAlg(in ProblemParams parameters, ref int[] taskOrder,
         int populationQuantity = 16, int numOfEgaCycles = 1, int hammingDist = 10,
-        double mutationChance = 0.1)
+        double mutationChance = 0.1, bool isSecondVersion = false)
     {
         #region Проверка параметров
 
@@ -95,7 +93,16 @@ public class EvolutionaryGeneticAlgorithm
                 GetParentCouple(population, hammingDist, out firstParent, out secondParent);
 
                 // Скрещивание.
-                nextGeneration.Add(GetDescendant(firstParent, secondParent));
+                if (isSecondVersion == false)
+                {
+                    // Первая версия ЭГА.
+                    nextGeneration.Add(GetDescendantPMX(firstParent, secondParent));
+                }
+                else
+                {
+                    // Вторая версия ЭГА.
+                    nextGeneration.Add(GetDescendantOX(firstParent, secondParent));
+                }
             }
 
             // -----------------------------------------------------------------------
@@ -179,7 +186,7 @@ public class EvolutionaryGeneticAlgorithm
     /// <param name="parentOne">Первый родитель.</param>
     /// <param name="parentTwo">Второй родитель.</param>
     /// <returns>Потомок.</returns>
-    public static int[] GetDescendant(int[] parentOne, int[] parentTwo)
+    public static int[] GetDescendantPMX(int[] parentOne, int[] parentTwo)
     {
         int arrayLength = parentOne.Length;
 
@@ -257,6 +264,82 @@ public class EvolutionaryGeneticAlgorithm
 
             // Если отображение не подошло.
             mappingIndex++;
+        }
+
+        return descendant;
+    }
+
+    /// <summary>
+    /// Получить потомка порядковым скрещиванием.
+    /// </summary>
+    /// <param name="parentOne">Первый родитель.</param>
+    /// <param name="parentTwo">Второй родитель.</param>
+    /// <returns>Потомок.</returns>
+    public static int[] GetDescendantOX(int[] parentOne, int[] parentTwo)
+    {
+        // todo: todo
+
+        int arrayLength = parentOne.Length;
+
+        // Потомок.
+        int[] descendant = new int[arrayLength];
+
+        // Границы копируемой секции.
+        int sectionStartIndex = arrayLength / 3;
+        int sectionEndIndex = arrayLength - arrayLength / 3;
+
+        // Значения аллей второго родителя
+        
+        int[] secondParentLegacy = new int[arrayLength];
+        int legacyCtr = 0;
+
+        // Заполнение массива недопустимыми значениями
+        for (int index = 0; index < sectionStartIndex; index++)
+        {
+            descendant[index] = -1;
+        }
+        for (int index = sectionEndIndex; index < arrayLength; index++)
+        {
+            descendant[index] = -1;
+        }
+
+        // Копирование секции из первого родителя.
+        for (int index = sectionStartIndex; index < sectionEndIndex; index++)
+        {
+            descendant[index] = parentOne[index];
+        }
+
+        // Копирование аллей второго родителя в список.
+        for (int index = sectionEndIndex; index < arrayLength; index++)
+        {
+            secondParentLegacy[legacyCtr++] = parentTwo[index];
+        }
+        for (int index = 0; index < sectionEndIndex; index++)
+        {
+            secondParentLegacy[legacyCtr++] = parentTwo[index];
+        }
+        legacyCtr = 0;
+
+        // Копирование аллелей второго родителя в потомка.
+        // Со второй точки разрыва до конца.
+        for (int index = sectionEndIndex; index < arrayLength; )
+        {
+            // Не содержит такого значения.
+            if (!descendant.Contains(secondParentLegacy[legacyCtr]))
+            {
+                descendant[index++] = secondParentLegacy[legacyCtr];
+            }
+            legacyCtr++;
+        }
+        // С начала до первой точки разрыва.
+        for (int index = 0; index < sectionStartIndex; )
+        {
+            // Не содержит такого значения.
+            if (!descendant.Contains(secondParentLegacy[legacyCtr]))
+            {
+                descendant[index++] = secondParentLegacy[legacyCtr];
+            }
+            legacyCtr++;
         }
 
         return descendant;

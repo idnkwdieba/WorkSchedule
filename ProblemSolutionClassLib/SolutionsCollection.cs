@@ -9,6 +9,7 @@ public class SolutionsCollection
     private int _optimalFitness; // Критерий самого оптимального решения
     private ProblemSolution _leapingFrogsSolution; // решение тасующим алгоритмом прыгающих лягушек
     private ProblemSolution _egaSolution; // решение эволюционно-генетическим алгоритмом
+    private ProblemSolution _egaSolutionSecond; // решение второй версией эволюционно-генетического алгоритма
     /// <summary>
     /// Конструктор экземпляра класса.
     /// </summary>
@@ -29,6 +30,9 @@ public class SolutionsCollection
 
         _egaSolution = new ProblemSolution(parameters);
         _egaSolution.EgaSolution();
+
+        _egaSolutionSecond = new ProblemSolution(parameters);
+        _egaSolutionSecond.EgaSolution(true);
     }
 
     /// <summary>
@@ -63,19 +67,20 @@ public class SolutionsCollection
     /// <summary>
     /// Получение отклонения решения алгоритмом прыгающих лягушек от решения перебором.
     /// </summary>
+    /// <param name="algType">Тип алгоритма.</param>
     /// <returns>Процент отклонения от решения перебором.</returns>
-    public double GetDeviation(bool isEgaDev = false)
+    public double GetDeviation(int algType)
     {
-        return GetDeviation(this, isEgaDev);
+        return GetDeviation(this, algType);
     }
 
     /// <summary>
     /// Получение отклонения решения ЭГА или алгоритмом прыгающих лягушек от решения перебором.
     /// </summary>
     /// <param name="solutionsCollection">Коллекция решений.</param>
-    /// <param name="isEgaDev">Получать ли отклонение для ЭГА.</param>
+    /// <param name="algType">Тип алгоритма.</param>
     /// <returns>Процент отклонения решения алгоритмом прыгающих лягушек от решения перебором.</returns>
-    public static double GetDeviation(in SolutionsCollection solutionsCollection, bool isEgaDev = false)
+    public static double GetDeviation(in SolutionsCollection solutionsCollection, int algType = 0)
     {
         // Проверка данных
         // Если передан указатель на null
@@ -85,24 +90,30 @@ public class SolutionsCollection
                 $"имел указатель на null.");
         }
 
-        double d1, d2, d3;
+        double d1 = 0, d2, d3;
 
-        // Для алгоритма прыгающих лягушек.
-        if (!isEgaDev)
+        switch (algType)
         {
-            d1 = (solutionsCollection._leapingFrogsSolution.GoalFunction
-                - solutionsCollection._optimalFitness);
-            d2 = d1 / solutionsCollection._optimalFitness;
-            d3 = d2 * 100;
-            return d3;
+            case 0:
+                // Для алгоритма прыгающих лягушек.
+                d1 = (solutionsCollection._leapingFrogsSolution.GoalFunction
+                    - solutionsCollection._optimalFitness);
+                break;
+            case 1:
+                // Для ЭГА.
+                d1 = (solutionsCollection._egaSolution.GoalFunction
+                    - solutionsCollection._optimalFitness);
+                break;
+            case 2:
+                // Для ЭГА второй версии.
+                d1 = (solutionsCollection._egaSolutionSecond.GoalFunction
+                    - solutionsCollection._optimalFitness);
+                break;
+
         }
 
-        // Для ЭГА.
-        d1 = (solutionsCollection._egaSolution.GoalFunction 
-            - solutionsCollection._optimalFitness);
         d2 = d1 / solutionsCollection._optimalFitness;
         d3 = d2 * 100;
-
         return d3;
     }
 
@@ -123,8 +134,9 @@ public class SolutionsCollection
     public static string GetDeviationsString(in SolutionsCollection solutionsCollection)
     {
         double frogsDev = GetDeviation(in solutionsCollection);
-        double egaDev = GetDeviation(in solutionsCollection, true);
+        double egaDev = GetDeviation(in solutionsCollection, 1);
+        double egaDev2 = GetDeviation(in solutionsCollection, 2);
 
-        return $"{frogsDev:0.00} {egaDev:0.00}";
+        return $"{frogsDev:0.00} {egaDev:0.00} {egaDev2:0.00}";
     }
 }

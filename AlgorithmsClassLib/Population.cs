@@ -148,9 +148,4 @@ public class Population
             ProblemParams.OutputSolutionData(taskParams, population[index]);
         }
     }
-
-    public static void PrintCrossoverResult()
-    {
-
-    }
 }
