@@ -380,7 +380,9 @@ public class ProblemParams
             for (int j = 0; j < parameters.NumOfTasks; j++)
             {
                 // Если индекс работы на j-й позиции массива равен i
-                indCount[i] += (taskOrder[j] == i ? 1 : 0);
+                indCount[i] += taskOrder[j] == i 
+                    ? 1
+                    : 0;
             }
         }
         // Если какой-то из индексов не встретился

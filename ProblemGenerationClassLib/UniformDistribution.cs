@@ -26,10 +26,10 @@ public static class UniformDistribution
         // Генерация данных задачи равномерным распределением
         for (int i = 0; i < numOfTasks; i++)
         {
-            requiredTimeArr[i] = rand.Next(1, 6);
-            arrivalTimeArr[i] = rand.Next(0, numOfTasks / 2 + numOfTasks % 2);
-            completionGoalArr[i] = rand.Next(arrivalTimeArr[i] + 1, arrivalTimeArr[i] + numOfTasks);
-            penaltyArr[i] = rand.Next(1, 4);
+            requiredTimeArr[i] = rand.Next(1, 21);
+            arrivalTimeArr[i] = rand.Next(0, 11);
+            completionGoalArr[i] = rand.Next(40, 101);
+            penaltyArr[i] = rand.Next(1, 16);
         }
 
         // Если нет ни одной работы, которая поступает в самом начале

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace WorkSchedule.Shared;
+﻿namespace WorkSchedule.Shared;
 
 /// <summary>
 /// Работа с начальной популяцией.
@@ -24,15 +22,15 @@ public class Population
         }
 
         // Список популяции из множества особей
-        List<int[]> population = new List<int[]>();
+        var population = new List<int[]>();
 
         // Потенциальная особь для добавления в популяцию.
         int[] potentialIndividual;
 
-        Random rand = new Random();
+        var rand = new Random();
 
         // Создание популяции.
-        for (int i = 0; i < quantity; )
+        for (var i = 0; i < quantity; )
         {
             potentialIndividual = RandomIndividual(length);
 
@@ -60,12 +58,12 @@ public class Population
             throw new ArgumentException($"{nameof(length)} было меньше или равно нуля.");
         }
 
-        int[] individual = new int[length];
-        Random rand = new();
+        var individual = new int[length];
+        var rand = new Random();
         int randIndex;
 
         // Заполнение массива порядковыми числами.
-        for (int index = 0; index < length; index++)
+        for (var index = 0; index < length; index++)
         {
             individual[index] = index;
         }
@@ -74,7 +72,7 @@ public class Population
         for (int index = length - 1; index >= 1; index--)
         {
             randIndex = rand.Next(index + 1);
-            int temp = individual[randIndex];
+            var temp = individual[randIndex];
             individual[randIndex] = individual[index];
             individual[index] = temp;
         }

@@ -1,4 +1,6 @@
-﻿namespace WorkSchedule.Shared;
+﻿using System.Globalization;
+
+namespace WorkSchedule.Shared;
 
 /// <summary>
 /// Эволюционно-генетический алгоритм.
@@ -14,10 +16,15 @@ public class EvolutionaryGeneticAlgorithm
     /// <param name="numOfEgaCycles">Количество циклов работы алгоритма.</param>
     /// <param name="hammingDist">Хеммингово расстояние.</param>
     /// <param name="mutationChance">Шанс мутации.</param>
-    /// <param name="isSecondVersion">Запускать ли вторую версию алгоритма.</param>
-    public static void RunEvolGenAlg(in ProblemParams parameters, ref int[] taskOrder,
-        int populationQuantity = 16, int numOfEgaCycles = 1, int hammingDist = 10,
-        double mutationChance = 0.1, bool isSecondVersion = false)
+    /// <param name="isSecondVersion">Запускать  коли вторую версию алгоритма.</param>
+    public static void RunEvolGenAlg(
+        in ProblemParams parameters, 
+        ref int[] taskOrder,
+        int populationQuantity = 100,
+        int numOfEgaCycles = 25, 
+        int hammingDist = 8,
+        double mutationChance = 0.1, 
+        bool isSecondVersion = false)
     {
         #region Проверка параметров
 
@@ -50,78 +57,80 @@ public class EvolutionaryGeneticAlgorithm
         #region Параметры
 
         // 0. Генерация начальной популяции.
-        List<int[]> population = Population.GeneratePopulation(parameters,
+        var population = Population.GeneratePopulation(parameters,
             parameters.NumOfTasks, populationQuantity);
 
         // Список потомков.
-        List<int[]> nextGeneration = new();
-        // Число потомков.
-        int descendantCount = populationQuantity / 2;
+        var nextGeneration = new List<int[]>();
+        // Число кроссоверов родительских пар (каждая пара = два потомка).
+        var descendantCount = populationQuantity / 2;
 
         // Начальная популяция + потомки.
-        List<int[]> combinedIndividuals = new();
+        List<int[]> combinedIndividuals;
         // Численность обобщенных особей.
         int combinedIndCount;
 
         // Рулетка.
-        int[] roulette;
-        int randomRoulette;
+        double[] roulette;
+        double randomRoulette;
         // Общая приспособленность.
-        int totalFitness;
+        double totalFitness;
 
         // Индекс для поиска особи при выборе рулеткой.
-        int curIndividualIndex = 0;
+        var curIndividualIndex = 0;
 
         // Родительская пара.
         int[] firstParent;
         int[] secondParent;
 
-        Random rand = new Random();
+        var rand = new Random();
+
+        taskOrder = new int[parameters.NumOfTasks];
 
         #endregion
 
         // Пока ЭГА не отработает заданное число циклов.
-        for (int cycleIndex = 0; cycleIndex < numOfEgaCycles; cycleIndex++)
+        for (var cycleIndex = 0; cycleIndex < numOfEgaCycles; cycleIndex++)
         {
-            // todo: Проверка существования хотя бы одной пары с нужным хеминговым расстроянием?
-
             // -----------------------------------------------------------------------
             // 1. Воспроизводство.
-            for (int index = 0; index < descendantCount; index++)
+            for (var index = 0; index < descendantCount; index++)
             {
-                // Выбор родительской пары.
-                GetParentCouple(population, hammingDist, out firstParent, out secondParent);
+                // Выбор родительской пары (если популяция слишком однородно - досрочное завершение ЭГА).
+                if (!GetParentCouple(population, hammingDist, out firstParent, out secondParent))
+                {
+                    return;
+                };
 
-                // Скрещивание.
-                if (isSecondVersion == false)
+                // Скрещивание (зависит от версии ЭГА).
+                if (!isSecondVersion)
                 {
                     // Первая версия ЭГА.
                     nextGeneration.Add(GetDescendantPMX(firstParent, secondParent));
+                    nextGeneration.Add(GetDescendantPMX(secondParent, firstParent));
+                    continue;
                 }
-                else
-                {
-                    // Вторая версия ЭГА.
-                    nextGeneration.Add(GetDescendantOX(firstParent, secondParent));
-                }
+
+                // Вторая версия ЭГА.
+                nextGeneration.Add(GetDescendantOX(firstParent, secondParent));
+                nextGeneration.Add(GetDescendantOX(secondParent, firstParent));
             }
 
             // -----------------------------------------------------------------------
             // 2. Мутация.
-            for (int index = 0; index < descendantCount; index++)
+            for (var index = 0; index < descendantCount; index++)
             {
                 // Случайное значение, определяющее, произойдёт ли мутация.
-                if (rand.NextDouble() > mutationChance)
+                if (rand.NextDouble() <= mutationChance)
                 {
-                    continue;
+                    // Весь генотип строится заново.
+                    nextGeneration[index] = Population.RandomIndividual(parameters.NumOfTasks);
                 }
-
-                // Весь генотип строится заново.
-                nextGeneration[index] = Population.RandomIndividual(parameters.NumOfTasks);
             }
 
             // -----------------------------------------------------------------------
-            // 3. Оценка потомков.
-            for (int index = 0; index < nextGeneration.Count;)
+            // 3. Оценка потомков, отбрасывание недопустимых решений.
+            for (var index = 0; index < nextGeneration.Count;)
             {
                 // Если особь допустима.
                 if (ProblemParams.ValidateSolution(parameters, nextGeneration[index]))
@@ -136,7 +145,7 @@ public class EvolutionaryGeneticAlgorithm
             // -----------------------------------------------------------------------
             // 4.1. Объединение предков и потомков.
             combinedIndividuals = population;
-            foreach (int[] individual in nextGeneration)
+            foreach (var individual in nextGeneration)
             {
                 combinedIndividuals.Add(individual);
             }
@@ -146,23 +155,23 @@ public class EvolutionaryGeneticAlgorithm
             population = new();
 
             // Рулетка.
-            roulette = new int[combinedIndCount];
+            roulette = new double[combinedIndCount];
 
+            // -----------------------------------------------------------------------
             // 4.2. Отбор.
-
             // Заполнение рулетки.
-            roulette[0] = ProblemParams.GetFitness(parameters, combinedIndividuals[0]);
-            for (int index = 1; index < combinedIndCount; index++)
+            roulette[0] = 1.0 / ProblemParams.GetFitness(parameters, combinedIndividuals[0]);
+            for (var index = 1; index < combinedIndCount; index++)
             {
                 roulette[index] = roulette[index - 1]
-                    + ProblemParams.GetFitness(parameters, combinedIndividuals[index]);
+                    + 1.0 / ProblemParams.GetFitness(parameters, combinedIndividuals[index]);
             }
             totalFitness = roulette[^1];
 
             // Заполнение новой популяции.
-            for (int index = 0; index < populationQuantity; index++)
+            for (var index = 0; index < populationQuantity; index++)
             {
-                randomRoulette = rand.Next(0, totalFitness);
+                randomRoulette = rand.Next((int)(totalFitness * Math.Pow(10, 8))) / Math.Pow(10, 8);
 
                 while (roulette[curIndividualIndex] < randomRoulette)
                 {
@@ -173,11 +182,14 @@ public class EvolutionaryGeneticAlgorithm
 
                 curIndividualIndex = 0;
             }
+
+            combinedIndividuals = new();
+            nextGeneration = new();
         }
 
         // Сортировка полученной популяции по приспособленности, возврат лучшей особи.
         Population.SortByFitness(parameters, ref population);
-        taskOrder = population[0];
+        Array.Copy(population[0], taskOrder, population[0].Length);
     }
 
     /// <summary>
@@ -188,33 +200,37 @@ public class EvolutionaryGeneticAlgorithm
     /// <returns>Потомок.</returns>
     public static int[] GetDescendantPMX(int[] parentOne, int[] parentTwo)
     {
-        int arrayLength = parentOne.Length;
+        var arrayLength = parentOne.Length;
 
         // Потомок.
-        int[] descendant = new int[arrayLength];
+        var descendant = new int[arrayLength];
 
         // Правила отображения.
-        List<int[]> mappingRules = new();
+        var mappingRules = new List<int[]>();
 
         // Границы копируемой секции.
-        int sectionStartIndex = arrayLength / 3;
-        int sectionEndIndex = arrayLength - arrayLength / 3;
+        var sectionStartIndex = arrayLength / 3;
+        var sectionEndIndex = arrayLength - arrayLength / 3;
 
-        int mappingIndex = 0;
+        var mappingIndex = 0;
         int numOfMappingRules;
 
         // Копирование второго родителя в потомка.
-        for (int index = 0; index < arrayLength; index++)
+        for (var index = 0; index < arrayLength; index++)
         {
             descendant[index] = parentTwo[index];
         }
 
         // Копирование секции из первого родителя, заполнение правил отображения.
-        for (int index = sectionStartIndex; index < sectionEndIndex; index++)
+        for (var index = sectionStartIndex; index < sectionEndIndex; index++)
         {
             descendant[index] = parentOne[index];
 
-            mappingRules.Add(new int[] { parentOne[index], parentTwo[index] });
+            mappingRules.Add(new int[]
+            {
+                parentOne[index],
+                parentTwo[index]
+            });
         }
 
         numOfMappingRules = mappingRules.Count;
@@ -229,7 +245,7 @@ public class EvolutionaryGeneticAlgorithm
             }
 
             // Первая треть перестановки.
-            for (int index = 0; index < sectionStartIndex; index++)
+            for (var index = 0; index < sectionStartIndex; index++)
             {
                 if (descendant[index] == mappingRules[mappingIndex][0])
                 {
@@ -246,7 +262,7 @@ public class EvolutionaryGeneticAlgorithm
             }
 
             // Последняя треть перестановки.
-            for (int index = sectionEndIndex; index < arrayLength; index++)
+            for (var index = sectionEndIndex; index < arrayLength; index++)
             {
                 if (descendant[index] == mappingRules[mappingIndex][0])
                 {
@@ -277,44 +293,41 @@ public class EvolutionaryGeneticAlgorithm
     /// <returns>Потомок.</returns>
     public static int[] GetDescendantOX(int[] parentOne, int[] parentTwo)
     {
-        // todo: todo
-
-        int arrayLength = parentOne.Length;
+        var arrayLength = parentOne.Length;
 
         // Потомок.
-        int[] descendant = new int[arrayLength];
+        var descendant = new int[arrayLength];
 
         // Границы копируемой секции.
-        int sectionStartIndex = arrayLength / 3;
-        int sectionEndIndex = arrayLength - arrayLength / 3;
+        var sectionStartIndex = arrayLength / 3;
+        var sectionEndIndex = arrayLength - arrayLength / 3;
 
-        // Значения аллей второго родителя
-        
-        int[] secondParentLegacy = new int[arrayLength];
-        int legacyCtr = 0;
+        // Значения аллей второго родителя.
+        var secondParentLegacy = new int[arrayLength];
+        var legacyCtr = 0;
 
         // Заполнение массива недопустимыми значениями
-        for (int index = 0; index < sectionStartIndex; index++)
+        for (var index = 0; index < sectionStartIndex; index++)
         {
             descendant[index] = -1;
         }
-        for (int index = sectionEndIndex; index < arrayLength; index++)
+        for (var index = sectionEndIndex; index < arrayLength; index++)
         {
             descendant[index] = -1;
         }
 
         // Копирование секции из первого родителя.
-        for (int index = sectionStartIndex; index < sectionEndIndex; index++)
+        for (var index = sectionStartIndex; index < sectionEndIndex; index++)
         {
             descendant[index] = parentOne[index];
         }
 
         // Копирование аллей второго родителя в список.
-        for (int index = sectionEndIndex; index < arrayLength; index++)
+        for (var index = sectionEndIndex; index < arrayLength; index++)
         {
             secondParentLegacy[legacyCtr++] = parentTwo[index];
         }
-        for (int index = 0; index < sectionEndIndex; index++)
+        for (var index = 0; index < sectionEndIndex; index++)
         {
             secondParentLegacy[legacyCtr++] = parentTwo[index];
         }
@@ -322,7 +335,7 @@ public class EvolutionaryGeneticAlgorithm
 
         // Копирование аллелей второго родителя в потомка.
         // Со второй точки разрыва до конца.
-        for (int index = sectionEndIndex; index < arrayLength; )
+        for (var index = sectionEndIndex; index < arrayLength;)
         {
             // Не содержит такого значения.
             if (!descendant.Contains(secondParentLegacy[legacyCtr]))
@@ -331,8 +344,10 @@ public class EvolutionaryGeneticAlgorithm
             }
             legacyCtr++;
         }
+
+        // Копирование аллелей второго родителя в потомка.
         // С начала до первой точки разрыва.
-        for (int index = 0; index < sectionStartIndex; )
+        for (var index = 0; index < sectionStartIndex;)
         {
             // Не содержит такого значения.
             if (!descendant.Contains(secondParentLegacy[legacyCtr]))
@@ -352,20 +367,32 @@ public class EvolutionaryGeneticAlgorithm
     /// <param name="hammingDist">Хеммингово расстояние.</param>
     /// <param name="parentOne">Первый родитель.</param>
     /// <param name="parentTwo">Второй родитель.</param>
-    public static void GetParentCouple(List<int[]> population, int hammingDist,
+    /// <returns>true, если пара найдёна;<br/>
+    /// false, если поиск подходящей пары занимает слишком много времени.</returns>
+    public static bool GetParentCouple(List<int[]> population, int hammingDist,
         out int[] parentOne, out int[] parentTwo)
     {
-        int populationCount = population.Count;
+        var populationCount = population.Count;
 
-        Random rand = new Random();
+        var rand = new Random();
+
+        var ctr = 0;
 
         // Пока не будет удовлетворяться критерий хеммингова расстояния.
         do
         {
             parentOne = population[rand.Next(0, populationCount)];
             parentTwo = population[rand.Next(0, populationCount)];
+            ctr++;
+
+            if (ctr == 256)
+            {
+                return false;
+            }
 
         } while (GetHammingDistance(parentOne, parentTwo) > hammingDist);
+
+        return true;
     }
 
     /// <summary>
@@ -378,7 +405,7 @@ public class EvolutionaryGeneticAlgorithm
     public static int GetHammingDistance(in int[] firstTaskOrder, in int[] secondTaskOrder)
     {
         // Проверка на null.
-        if (firstTaskOrder == null || secondTaskOrder == null)
+        if (firstTaskOrder is null || secondTaskOrder is null)
         {
             throw new ArgumentException("Один из массивов был равен null.",
                 $"{nameof(firstTaskOrder)}, {nameof(secondTaskOrder)}");
@@ -391,11 +418,11 @@ public class EvolutionaryGeneticAlgorithm
                 $"{nameof(firstTaskOrder)}, {nameof(secondTaskOrder)}");
         }
 
-        int hammingDist = 0;
+        var hammingDist = 0;
 
-        int arrayLength = firstTaskOrder.Length;
+        var arrayLength = firstTaskOrder.Length;
 
-        for (int index = 0; index < arrayLength; index++)
+        for (var index = 0; index < arrayLength; index++)
         {
             hammingDist += (firstTaskOrder[index] == secondTaskOrder[index])
                 ? 1

@@ -1,7 +1,4 @@
-﻿
-namespace WorkSchedule.Shared;
-
-using static System.Console;
+﻿namespace WorkSchedule.Shared;
 
 public static class BruteForceAlgorithm
 {
@@ -12,7 +9,6 @@ public static class BruteForceAlgorithm
     /// </summary>
     /// <param name="parameters">Параметры задачи.</param>
     /// <param name="taskOrder">Получаемый порядок выполнения задач.</param>
-    /// <param name="prevIndexes">Индексы, использованные ранее в перестановке.</param>
     public static void RunBruteForceAlg(in ProblemParams parameters, ref int[] taskOrder)
     {
         // Сохранить число задач в статическую переменную.
@@ -20,7 +16,7 @@ public static class BruteForceAlgorithm
 
         // Заполнить начальный массив порядка выполнения работ.
         taskOrder = new int[NumOfTasks];
-        for (int index = 0; index < NumOfTasks; index++)
+        for (var index = 0; index < NumOfTasks; index++)
         {
             taskOrder[index] = index;
         }
@@ -35,14 +31,10 @@ public static class BruteForceAlgorithm
     /// <param name="parameters">Параметры задачи.</param>
     /// <param name="taskOrder">Получаемый порядок выполнения задач.</param>
     /// <param name="prevIndexes">Индексы, использованные ранее в перестановке.</param>
-    public static void CheckAllVariants(in ProblemParams parameters, ref int[] taskOrder,
-        List<int>? prevIndexes = null)
+    public static void CheckAllVariants(in ProblemParams parameters, ref int[] taskOrder, List<int>? prevIndexes = null)
     {
         // Если список предыдущих индексов ещё не был создан
-        if (prevIndexes == null)
-        {
-            prevIndexes = new();
-        }
+        prevIndexes ??= new();
 
         // Если список индексов по длине совпал с числом работ
         if (prevIndexes.Count == NumOfTasks)
@@ -50,7 +42,7 @@ public static class BruteForceAlgorithm
             // Поиск решения
 
             // Временный массив для порядка выполнения работы
-            int[] tmpTaskOrder = new int[NumOfTasks];
+            var tmpTaskOrder = new int[NumOfTasks];
 
             // копировать порядок выполнения работ из списка в массив
             prevIndexes.CopyTo(tmpTaskOrder, 0);
@@ -66,7 +58,7 @@ public static class BruteForceAlgorithm
         }
 
         // Перебор всех вариантов на шаг ниже
-        for (int i = 0; i < NumOfTasks; i++)
+        for (var i = 0; i < NumOfTasks; i++)
         {
             // Если данный индекс уже используется в перестановке
             if (prevIndexes.Contains(i))

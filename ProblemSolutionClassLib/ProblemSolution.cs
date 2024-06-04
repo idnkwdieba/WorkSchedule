@@ -211,10 +211,10 @@ public class ProblemSolution
         FrogsAlgorithm.RunFrogsAlg(
             parameters: solution.Problem,
             taskOrder: ref solution._tasksOrder!,
-            numOfSubgroups: 2,
-            subgroupQuantity: solution.Problem.NumOfTasks,
+            numOfSubgroups: 10,
+            subgroupQuantity: 10,
             memeplexCycles: 5,
-            populationCycles: 2);
+            populationCycles: 10);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);
     }
@@ -246,10 +246,6 @@ public class ProblemSolution
         EvolutionaryGeneticAlgorithm.RunEvolGenAlg(
             parameters: solution.Problem,
             taskOrder: ref solution._tasksOrder!,
-            populationQuantity: solution.Problem.NumOfTasks * solution.Problem.NumOfTasks * 2,
-            numOfEgaCycles: solution.Problem.NumOfTasks,
-            hammingDist: (solution.Problem.NumOfTasks > 7 ? solution.Problem.NumOfTasks - 2 : 4),
-            mutationChance: 0.1,
             isSecondVersion: isSecondVersion);
         ProblemParams.GetStartEndTime(solution.Problem, solution._tasksOrder,
             out solution._taskStartTime, out solution._taskEndTime);

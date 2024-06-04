@@ -62,6 +62,9 @@ public class SolutionsCollection
         Write($"{"ЭГА",-20}| ");
         ProblemParams.OutputSolutionData(solutionsCollection._problemParams,
             solutionsCollection._egaSolution.TaskOrder!);
+        Write($"{"ЭГА v2",-20}| ");
+        ProblemParams.OutputSolutionData(solutionsCollection._problemParams,
+            solutionsCollection._egaSolutionSecond.TaskOrder!);
     }
 
     /// <summary>

@@ -43,6 +43,10 @@ namespace GraphApp
             }
             sr.Close();
 
+            var avg1 = frogsDevValues.Average();
+            var avg2 = egaDevValues.Average();
+            var avg3 = egaDevValues2.Average();
+
             // Данные для графиков
             double[] frogsValues = new double[11];
             double[] egaValues = new double[11];
